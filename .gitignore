@@ -1,0 +1,7 @@
+# private xcode stuff like the scheme with the gemini key
+xcuserdata/
+.DS_Store
+
+# local backups and drafts not part of the app
+Backup-before-comments/
+WidgetDrafts/

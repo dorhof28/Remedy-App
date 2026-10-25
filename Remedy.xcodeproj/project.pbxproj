@@ -6,20 +6,105 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		00BF98C1308E9D5E0043ED13 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00BF98C0308E9D5E0043ED13 /* WidgetKit.framework */; };
+		00BF98C3308E9D5E0043ED13 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00BF98C2308E9D5E0043ED13 /* SwiftUI.framework */; };
+		00BF98D0308E9D5F0043ED13 /* RemedyWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 00BF98BE308E9D5E0043ED13 /* RemedyWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		00BF98CE308E9D5F0043ED13 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00F12B54308D7E9700555354 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 00BF98BD308E9D5E0043ED13;
+			remoteInfo = RemedyWidgetExtension;
+		};
+		00F12C07308DA00000555354 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00F12B54308D7E9700555354 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 00F12B5B308D7E9700555354;
+			remoteInfo = Remedy;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		00BF98D5308E9D5F0043ED13 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = PlugIns;
+			files = (
+				00BF98D0308E9D5F0043ED13 /* RemedyWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		002C6CF8308E9E490042579C /* RemedyWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RemedyWidgetExtension.entitlements; sourceTree = "<group>"; };
+		00BF98BE308E9D5E0043ED13 /* RemedyWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RemedyWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		00BF98C0308E9D5E0043ED13 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		00BF98C2308E9D5E0043ED13 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		00F12B5C308D7E9700555354 /* Remedy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Remedy.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		00F12C01308DA00000555354 /* RemedyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RemedyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		002C6CFA308E9E760042579C /* Exceptions for "Remedy" folder in "RemedyWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Services/Widget/WidgetSnapshot.swift,
+			);
+			target = 00BF98BD308E9D5E0043ED13 /* RemedyWidgetExtension */;
+		};
+		00BF98D1308E9D5F0043ED13 /* Exceptions for "RemedyWidget" folder in "RemedyWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 00BF98BD308E9D5E0043ED13 /* RemedyWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		00BF98C4308E9D5E0043ED13 /* RemedyWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				00BF98D1308E9D5F0043ED13 /* Exceptions for "RemedyWidget" folder in "RemedyWidgetExtension" target */,
+			);
+			path = RemedyWidget;
+			sourceTree = "<group>";
+		};
 		00F12B5E308D7E9700555354 /* Remedy */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				002C6CFA308E9E760042579C /* Exceptions for "Remedy" folder in "RemedyWidgetExtension" target */,
+			);
 			path = Remedy;
+			sourceTree = "<group>";
+		};
+		00F12C02308DA00000555354 /* RemedyTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = RemedyTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		00BF98BB308E9D5E0043ED13 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				00BF98C3308E9D5E0043ED13 /* SwiftUI.framework in Frameworks */,
+				00BF98C1308E9D5E0043ED13 /* WidgetKit.framework in Frameworks */,
+			);
+		};
 		00F12B59308D7E9700555354 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		00F12C05308DA00000555354 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
 			);
@@ -27,10 +112,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		00BF98BF308E9D5E0043ED13 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				00BF98C0308E9D5E0043ED13 /* WidgetKit.framework */,
+				00BF98C2308E9D5E0043ED13 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		00F12B53308D7E9700555354 = {
 			isa = PBXGroup;
 			children = (
+				002C6CF8308E9E490042579C /* RemedyWidgetExtension.entitlements */,
 				00F12B5E308D7E9700555354 /* Remedy */,
+				00F12C02308DA00000555354 /* RemedyTests */,
+				00BF98C4308E9D5E0043ED13 /* RemedyWidget */,
+				00BF98BF308E9D5E0043ED13 /* Frameworks */,
 				00F12B5D308D7E9700555354 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -39,6 +137,8 @@
 			isa = PBXGroup;
 			children = (
 				00F12B5C308D7E9700555354 /* Remedy.app */,
+				00F12C01308DA00000555354 /* RemedyTests.xctest */,
+				00BF98BE308E9D5E0043ED13 /* RemedyWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -46,6 +146,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		00BF98BD308E9D5E0043ED13 /* RemedyWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00BF98D2308E9D5F0043ED13 /* Build configuration list for PBXNativeTarget "RemedyWidgetExtension" */;
+			buildPhases = (
+				00BF98BA308E9D5E0043ED13 /* Sources */,
+				00BF98BB308E9D5E0043ED13 /* Frameworks */,
+				00BF98BC308E9D5E0043ED13 /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				00BF98C4308E9D5E0043ED13 /* RemedyWidget */,
+			);
+			name = RemedyWidgetExtension;
+			productName = RemedyWidgetExtension;
+			productReference = 00BF98BE308E9D5E0043ED13 /* RemedyWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		00F12B5B308D7E9700555354 /* Remedy */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00F12B67308D7E9800555354 /* Build configuration list for PBXNativeTarget "Remedy" */;
@@ -53,8 +171,12 @@
 				00F12B58308D7E9700555354 /* Sources */,
 				00F12B59308D7E9700555354 /* Frameworks */,
 				00F12B5A308D7E9700555354 /* Resources */,
+				00BF98D5308E9D5F0043ED13 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
+			);
+			dependencies = (
+				00BF98CF308E9D5F0043ED13 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				00F12B5E308D7E9700555354 /* Remedy */,
@@ -63,6 +185,27 @@
 			productName = Remedy;
 			productReference = 00F12B5C308D7E9700555354 /* Remedy.app */;
 			productType = "com.apple.product-type.application";
+		};
+		00F12C03308DA00000555354 /* RemedyTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00F12C09308DA00000555354 /* Build configuration list for PBXNativeTarget "RemedyTests" */;
+			buildPhases = (
+				00F12C04308DA00000555354 /* Sources */,
+				00F12C05308DA00000555354 /* Frameworks */,
+				00F12C06308DA00000555354 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				00F12C08308DA00000555354 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				00F12C02308DA00000555354 /* RemedyTests */,
+			);
+			name = RemedyTests;
+			productName = RemedyTests;
+			productReference = 00F12C01308DA00000555354 /* RemedyTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -74,8 +217,15 @@
 				LastSwiftUpdateCheck = 2710;
 				LastUpgradeCheck = 2710;
 				TargetAttributes = {
+					00BF98BD308E9D5E0043ED13 = {
+						CreatedOnToolsVersion = 27.1;
+					};
 					00F12B5B308D7E9700555354 = {
 						CreatedOnToolsVersion = 27.1;
+					};
+					00F12C03308DA00000555354 = {
+						CreatedOnToolsVersion = 27.1;
+						TestTargetID = 00F12B5B308D7E9700555354;
 					};
 				};
 			};
@@ -94,12 +244,24 @@
 			projectRoot = "";
 			targets = (
 				00F12B5B308D7E9700555354 /* Remedy */,
+				00F12C03308DA00000555354 /* RemedyTests */,
+				00BF98BD308E9D5E0043ED13 /* RemedyWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		00BF98BC308E9D5E0043ED13 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
 		00F12B5A308D7E9700555354 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		00F12C06308DA00000555354 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
@@ -107,14 +269,101 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		00BF98BA308E9D5E0043ED13 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 		00F12B58308D7E9700555354 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		00F12C04308DA00000555354 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
 			);
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		00BF98CF308E9D5F0043ED13 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 00BF98BD308E9D5E0043ED13 /* RemedyWidgetExtension */;
+			targetProxy = 00BF98CE308E9D5F0043ED13 /* PBXContainerItemProxy */;
+		};
+		00F12C08308DA00000555354 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 00F12B5B308D7E9700555354 /* Remedy */;
+			targetProxy = 00F12C07308DA00000555354 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		00BF98D3308E9D5F0043ED13 /* Debug configuration for PBXNativeTarget "RemedyWidgetExtension" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = RemedyWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 39N8UH3382;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RemedyWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Remedy;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dorronhoffman.Remedy.RemedyWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		00BF98D4308E9D5F0043ED13 /* Release configuration for PBXNativeTarget "RemedyWidgetExtension" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = RemedyWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 39N8UH3382;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RemedyWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Remedy;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dorronhoffman.Remedy.RemedyWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		00F12B65308D7E9800555354 /* Debug configuration for PBXProject "Remedy" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -241,11 +490,17 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Remedy/Remedy.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 39N8UH3382;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Remedy adds your visits to your calendar.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Remedy uses the camera to scan your surgery papers.";
+				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Remedy reads the medicines from your hospital records so you can check them and get reminders.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Remedy reads your step count to show your walking next to your daily goals.";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "Remedy adds the to-dos from your surgery papers to a Remedy list in Reminders.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -258,6 +513,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dorronhoffman.Remedy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -273,11 +529,17 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Remedy/Remedy.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 39N8UH3382;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Remedy adds your visits to your calendar.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Remedy uses the camera to scan your surgery papers.";
+				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Remedy reads the medicines from your hospital records so you can check them and get reminders.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Remedy reads your step count to show your walking next to your daily goals.";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "Remedy adds the to-dos from your surgery papers to a Remedy list in Reminders.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -290,6 +552,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dorronhoffman.Remedy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -300,9 +563,63 @@
 			};
 			name = Release;
 		};
+		00F12C0A308DA00000555354 /* Debug configuration for PBXNativeTarget "RemedyTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 39N8UH3382;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dorronhoffman.RemedyTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Remedy.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Remedy";
+			};
+			name = Debug;
+		};
+		00F12C0B308DA00000555354 /* Release configuration for PBXNativeTarget "RemedyTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 39N8UH3382;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dorronhoffman.RemedyTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Remedy.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Remedy";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		00BF98D2308E9D5F0043ED13 /* Build configuration list for PBXNativeTarget "RemedyWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00BF98D3308E9D5F0043ED13 /* Debug configuration for PBXNativeTarget "RemedyWidgetExtension" */,
+				00BF98D4308E9D5F0043ED13 /* Release configuration for PBXNativeTarget "RemedyWidgetExtension" */,
+			);
+			defaultConfigurationName = Release;
+		};
 		00F12B57308D7E9700555354 /* Build configuration list for PBXProject "Remedy" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -316,6 +633,14 @@
 			buildConfigurations = (
 				00F12B68308D7E9800555354 /* Debug configuration for PBXNativeTarget "Remedy" */,
 				00F12B69308D7E9800555354 /* Release configuration for PBXNativeTarget "Remedy" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		00F12C09308DA00000555354 /* Build configuration list for PBXNativeTarget "RemedyTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00F12C0A308DA00000555354 /* Debug configuration for PBXNativeTarget "RemedyTests" */,
+				00F12C0B308DA00000555354 /* Release configuration for PBXNativeTarget "RemedyTests" */,
 			);
 			defaultConfigurationName = Release;
 		};
