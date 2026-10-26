@@ -1,0 +1,29 @@
+{
+  "id": "example-hss-preop-spine-table",
+  "paper": "beforeSurgery",
+  "checkedBy": "",
+  "source": "samples/clean/05-preop-spine-Nakamura-Byrne.pdf (pages 1 and 3, cut down)",
+  "note": "Consult date, a pre-admission testing date and the surgery date. A 3-column table, hours instead of days, and must-not-stop transplant medicines",
+  "pageText": "Harold T. Nakamura-Byrne MRN: 90731659 10/22/2026 2:30 PM Spine Surgery at HSS Stamford\nYou saw Rafael Lindqvist on Thursday October 22, 2026 for a Consult.\nWhat's Next\nNOV 2 2026 Pre-Admission Testing Monday November 2 7:30 AM\nDo NOT take your morning tacrolimus until after your blood is drawn – bring it with you.\nYour Personal Medication Plan for Surgery on Thursday 11/12/2026\nMedication | What to do | Restart\nGlipizide 5 mg | Do not take the morning of surgery | When eating normally\nLosartan 50 mg | Last dose 11/10. Do not take 24 hrs before surgery | Day after surgery if BP OK\nTacrolimus (Prograf) | DO NOT STOP. Take your usual 9 PM dose 11/11 and your morning dose on 11/12 with a sip of water. | Continue\nAmlodipine, Allopurinol, Rosuvastatin | Take as usual | Continue\nHarold T. Nakamura-Byrne (MRN: 90731659) • Printed at 10/22/2026 3:18 PM Page 3 of 4 Epic\nSAMPLE – fictitious patient, for app testing only. Not a real HSS document. Made-up medical content.",
+  "answer": [
+    "Glipizide: strength \"5 mg\", action stop, whenText \"the morning of surgery\", startDay 0, endDay 0",
+    "Losartan: strength \"50 mg\", action stop, whenText \"24 hrs before surgery\", startDay -1, endDay 0",
+    "Tacrolimus: otherNames [\"prograf\"], action take. DO NOT STOP",
+    "Amlodipine: action take. One table cell can hold several medicines, so make one entry each",
+    "Allopurinol: action take",
+    "Rosuvastatin: action take",
+    "Task \"Pre-admission testing, bring your tacrolimus and take it after your blood is drawn\"",
+    "Visit \"Pre-Admission Testing\": dateText \"Monday November 2\" (no year in that line, so it becomes a call-to-book task)",
+    "surgeryDate \"Thursday 11/12/2026\". October 22 is the consult and November 2 is testing"
+  ],
+  "checks": {
+    "stopDays": {
+      "Glipizide": 0,
+      "Losartan": -1
+    },
+    "surgeryDate": "2026-11-12",
+    "names": [
+      "Harold T. Nakamura-Byrne"
+    ]
+  }
+}

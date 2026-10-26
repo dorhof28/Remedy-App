@@ -36,20 +36,22 @@ nonisolated enum AIMedicineAction {
 nonisolated struct AIMedicine {
     @Guide(description: "The exact words from the papers, word for word. For an item in a list, the heading and the item")
     var quote: String
-    @Guide(description: "The medicine or group name as written, like \"Aspirin 325 mg\" or \"Vitamins and supplements\"")
+    @Guide(description: "Only the medicine's name, with no strength, amount or pill type, like \"Aspirin\" or \"Oxycodone\". For a group, the group, like \"Vitamins and supplements\"")
     var name: String
-    @Guide(description: "Other names for it written on the papers (brand or generic), lower case")
+    @Guide(description: "Brand, generic or nicknames written on the papers, like \"baby aspirin\" or \"tylenol\", lower case")
     var otherNames: [String]
     @Guide(description: "true for a group, like \"any other NSAID\" or \"all supplements\"")
     var isGroup: Bool
     var action: AIMedicineAction
-    @Guide(description: "First day it applies. Surgery day is 0, the day before is -1, the day after is 1")
+    @Guide(description: "The words that say when, copied exactly, like \"7 days before surgery\". For a list, the heading's words. Empty if not written")
+    var whenText: String
+    @Guide(description: "First day it applies. Surgery day is 0, the day before is -1, the day after is 1. \"7 days before surgery\" is -7")
     var startDay: Int?
     @Guide(description: "Last day it applies, counted the same way")
     var endDay: Int?
-    @Guide(description: "Strength of one pill, like \"500 mg\"")
+    @Guide(description: "Strength of one pill or dose as written, like \"81 mg\" or \"5-325 mg\". Empty if not written")
     var strength: String
-    @Guide(description: "How many each time, like \"2 tablets\"")
+    @Guide(description: "How many each time, like \"1 tablet\" or \"2 puffs\". Empty if not written")
     var amount: String
     @Guide(description: "Clock times only if printed, as HH:mm in 24 hours")
     var clockTimes: [String]
@@ -80,6 +82,8 @@ nonisolated struct AIRule {
     var isAllowed: Bool
     @Guide(description: "Only while something is true, like \"While you take oxycodone\"")
     var condition: String
+    @Guide(description: "The words that say when, copied exactly, like \"for 2 weeks after surgery\". Empty if not written")
+    var whenText: String
     var startDay: Int?
     var endDay: Int?
 }

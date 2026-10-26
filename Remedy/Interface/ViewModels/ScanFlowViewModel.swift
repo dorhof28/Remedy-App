@@ -22,10 +22,11 @@ enum ScanStep: Equatable {
     case finish
 }
 
-// the three things "reading" does shown as a checklist
+// the real steps "reading" goes through shown as a checklist
 enum ReadingStage: Int, CaseIterable, Identifiable {
     case readingWords
     case removingPersonalInfo
+    case geminiReading
     case findingInstructions
     case done
 
@@ -34,11 +35,31 @@ enum ReadingStage: Int, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .readingWords: return "Reading the words on this phone"
-        case .removingPersonalInfo: return "Removing your name and record numbers"
+        case .removingPersonalInfo: return "Hiding your name and record numbers"
+        case .geminiReading: return "Google Gemini reads the blacked out page"
         case .findingInstructions: return "Finding medicines, rules and visits"
         case .done: return "Done"
         }
     }
+
+    var symbol: String {
+        switch self {
+        case .readingWords: return "text.viewfinder"
+        case .removingPersonalInfo: return "eye.slash"
+        case .geminiReading: return "sparkles"
+        case .findingInstructions: return "list.bullet.clipboard"
+        case .done: return "checkmark.seal.fill"
+        }
+    }
+}
+
+// one kind of thing found on the papers counted up when reading ends
+struct FoundCount: Identifiable {
+    let title: String
+    let symbol: String
+    let tone: Tone
+    let total: Int
+    var id: String { title }
 }
 
 // which kind of item a card is and where it sits in the draft
@@ -54,6 +75,7 @@ struct CleanedPage: Identifiable {
     let number: Int
     let text: String
     let removedCount: Int
+    var picture: UIImage? = nil     // the blacked out photo when there is one
 
     var id: Int { number }
     var title: String { "Page \(number)" }
@@ -93,6 +115,11 @@ final class ScanFlowViewModel {
     var step: ScanStep
     var paper: PaperKind = .beforeSurgery
     var stage: ReadingStage = .readingWords
+    var pageCount = 0               // pages being read
+    var geminiPage = 0              // the page gemini is on now
+    var showsGeminiStage = false    // only when the photo is really sent
+    var readingStartedAt = Date()
+    var shownCounts: [Int] = []     // the found counts as they tick up
     var draft: DraftPlan?
     var cleanedText = ""            // first page after redaction (shown to the patient)
     var cleanedPages: [CleanedPage] = []   // every page after redaction for the full view
@@ -104,6 +131,7 @@ final class ScanFlowViewModel {
     var isImportingFromEpic = false
     var isImportingFromHealth = false
     var photoItems: [PhotosPickerItem] = []
+    var namesToHide = PatientNames.savedText     // typed names hidden before anything is sent
 
     // true when adding papers to a plan that already exists
     let isAddingPapers: Bool
@@ -134,6 +162,10 @@ final class ScanFlowViewModel {
     let healthButton = "Import from Apple Health"
     let healthSource = "From Apple Health Records"
     let sampleButton = "Use sample papers"
+    let sampleMyChartButton = "Use sample MyChart record"
+    let namesTitle = "Names to hide"
+    let namesPrompt = "Your full name"
+    let namesFooter = "Hidden on this phone before anything is read by AI, even if the camera misreads it. Add family names too, separated by commas."
     let readingTitle = "Reading your papers"
     let cleanedTitle = "What the AI sees"
     let continueButton = "Check each item"
@@ -181,8 +213,8 @@ final class ScanFlowViewModel {
     }
 
     let paperOptions = [
-        PaperOption(id: .beforeSurgery, title: "Before surgery", detail: "What to stop and bring", symbol: "calendar.badge.clock"),
-        PaperOption(id: .afterSurgery, title: "After surgery", detail: "Discharge papers from the hospital", symbol: "house"),
+        PaperOption(id: .beforeSurgery, title: "Before surgery", detail: "", symbol: "calendar.badge.clock"),
+        PaperOption(id: .afterSurgery, title: "After surgery", detail: "", symbol: "house"),
     ]
 
     var canUseCamera: Bool { DocumentScanner.isAvailable }
@@ -202,7 +234,77 @@ final class ScanFlowViewModel {
 
     // MARK: - Reading
 
-    var stages: [ReadingStage] { [.readingWords, .removingPersonalInfo, .findingInstructions] }
+    var stages: [ReadingStage] {
+        showsGeminiStage
+            ? [.readingWords, .removingPersonalInfo, .geminiReading, .findingInstructions]
+            : [.readingWords, .removingPersonalInfo, .findingInstructions]
+    }
+
+    // the small line under each step only says what really happened
+    func detail(for stage: ReadingStage) -> String {
+        let pages = PlainText.count(pageCount, "page")
+        switch stage {
+        case .readingWords:
+            if isDone(stage) { return "Read \(pages)" }
+            return isRunning(stage) && pageCount > 0 ? pages : ""
+        case .removingPersonalInfo:
+            if isDone(stage) { return removedCount == 0 ? "Nothing personal found" : "Hid \(PlainText.count(removedCount, "personal detail"))" }
+            return isRunning(stage) ? "Your typed names labels and barcodes" : ""
+        case .geminiReading:
+            if isDone(stage) { return "Only the blacked out photo was sent" }
+            return isRunning(stage) && geminiPage > 0 ? "Page \(geminiPage) of \(pageCount)" : ""
+        case .findingInstructions:
+            if isDone(stage) { return "Every item checked against your papers" }
+            return isRunning(stage) ? "Then each one is checked against your papers" : ""
+        case .done:
+            return ""
+        }
+    }
+
+    // the page drawing on top follows the real step
+    var pageIsScanning: Bool { stage == .readingWords }
+    var pageIsBlackedOut: Bool { stage.rawValue > ReadingStage.removingPersonalInfo.rawValue }
+
+    // an honest wait line once it has taken a while
+    func waitText(now: Date) -> String {
+        let seconds = Int(now.timeIntervalSince(readingStartedAt))
+        guard seconds >= 8 else { return "" }
+        return seconds < 60
+            ? "This can take up to a minute. \(seconds) seconds so far"
+            : "Still working. Long papers can take a couple of minutes"
+    }
+
+    // what was found ready to count up
+    var foundCounts: [FoundCount] {
+        guard let draft else { return [] }
+        return [
+            FoundCount(title: "Medicines", symbol: "pills.fill", tone: .info, total: draft.medicines.count),
+            FoundCount(title: "Rules", symbol: "checklist", tone: .caution, total: draft.rules.count),
+            FoundCount(title: "Visits", symbol: "calendar", tone: .good, total: draft.appointments.count),
+            FoundCount(title: "To-dos", symbol: "checkmark.circle", tone: .neutral, total: draft.tasks.count)
+        ]
+    }
+
+    let foundTitle = "Found on your papers"
+
+    // the number shown for one count while it ticks up
+    func shownCount(_ index: Int) -> Int {
+        index < shownCounts.count ? shownCounts[index] : 0
+    }
+
+    // ticks each count up from zero to the real number
+    func countUp(reduceMotion: Bool) async {
+        let totals = foundCounts.map(\.total)
+        guard !reduceMotion else {
+            shownCounts = totals
+            return
+        }
+        shownCounts = totals.map { _ in 0 }
+        for value in 1...max(totals.max() ?? 0, 1) {
+            try? await Task.sleep(for: .milliseconds(90))
+            withAnimation(.snappy) { shownCounts = totals.map { min($0, value) } }
+        }
+    }
 
     func isDone(_ stage: ReadingStage) -> Bool { stage.rawValue < self.stage.rawValue }
     func isRunning(_ stage: ReadingStage) -> Bool { stage == self.stage }
@@ -213,6 +315,7 @@ final class ScanFlowViewModel {
     }
     let sentPagesTitle = "What the AI sees"
     let sentPagesDetail = "This is exactly what was sent. Blacked out parts never left your phone."
+    let pictureCaption = "The photo, blacked out on this phone before it was sent"
 
     var removedText: String {
         removedCount == 0 ? "Nothing personal was found." : "Removed \(PlainText.count(removedCount, "personal detail")) on this phone."
@@ -220,9 +323,8 @@ final class ScanFlowViewModel {
 
     // camera pages
     func process(images: [UIImage]) async {
-        start()
-        let pages = await TextReader.read(images)
-        await process(pages: pages)
+        start(pages: images.count)
+        await process(scanned: await TextReader.scan(images))
     }
 
     // photos picked from the library
@@ -235,16 +337,15 @@ final class ScanFlowViewModel {
             }
         }
         photoItems = []
-        let pages = await TextReader.read(images)
-        await process(pages: pages)
+        pageCount = images.count
+        await process(scanned: await TextReader.scan(images))
     }
 
     // a PDF from the Files app
     func processPDF(at url: URL) async {
         start()
         do {
-            let pages = try await PDFReader.read(url)
-            await process(pages: pages)
+            await process(scanned: try await PDFReader.scan(url))
         } catch {
             errorText = (error as? PDFReaderError)?.errorDescription ?? "We couldn\u{2019}t open that PDF."
             withAnimation { step = .choosePaper }
@@ -304,6 +405,15 @@ final class ScanFlowViewModel {
         return "Read by \(name)"
     }
 
+    // DEMO ONLY the same mapping as mychart without signing in
+    func useSampleMyChart() {
+        errorText = nil
+        draft = SampleFHIR.draft(paper: paper, now: AppClock.now())
+        cardIndex = 0
+        removedIDs = []
+        goToConfirm()
+    }
+
     // DEMO ONLY skips the camera and uses the sample page text
     func useSamplePapers() async {
         start()
@@ -311,32 +421,58 @@ final class ScanFlowViewModel {
         await process(pages: [SampleDrafts.pageText(for: paper)])
     }
 
-    private func start() {
+    private func start(pages: Int = 0) {
+        PatientNames.save(namesToHide)
         errorText = nil
         stage = .readingWords
+        pageCount = pages
+        geminiPage = 0
+        shownCounts = []
+        readingStartedAt = AppClock.now()
+        showsGeminiStage = GeminiPageReader.isAvailable
         withAnimation { step = .reading }
     }
 
-    // redact on the phone then ask the AI for a draft
+    // text without a picture like the sample
     private func process(pages: [String]) async {
+        await process(scanned: pages.map { ScannedPage(text: $0) })
+    }
+
+    // fix typos and hide personal info on the text and picture on the phone then ask the AI
+    private func process(scanned: [ScannedPage]) async {
         // no words at all
-        guard pages.contains(where: { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else {
+        guard scanned.contains(where: { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else {
             errorText = PlanReaderError.couldNotRead.errorDescription
             withAnimation { step = .choosePaper }
             return
         }
+        pageCount = scanned.count
         withAnimation { stage = .removingPersonalInfo }
-        let redacted = await AIRedactor.redact(pages)     // rules + Apple's phone AI, never the cloud
-        cleanedText = redacted.first?.text ?? ""
-        cleanedPages = redacted.enumerated().map { index, page in
-            CleanedPage(number: index + 1, text: page.text, removedCount: page.removedCount)
-        }
+        let fixed = scanned.map { TypoFixer.fix($0.text) }
+        let redacted = await AIRedactor.redact(fixed)     // rules names + Apple's phone AI, never the cloud
+        let pictures = zip(scanned, redacted).map { PageBlackout.image(for: $0, hiding: $1.hidden) }
         removedCount = redacted.reduce(0) { $0 + $1.removedCount }
-        try? await Task.sleep(for: .seconds(1))     // long enough to see the step
 
+        // gemini reads the blacked out picture for lists and typos then we hide everything again
+        let jpegs = pictures.map { $0.flatMap(PageBlackout.jpeg) }
+        withAnimation {
+            showsGeminiStage = GeminiPageReader.isAvailable && jpegs.contains { $0 != nil }
+            stage = showsGeminiStage ? .geminiReading : .findingInstructions
+        }
+        let improved = await GeminiPageReader.improve(redacted.map(\.text), pictures: jpegs) { page in
+            withAnimation { self.geminiPage = page }
+        }
         withAnimation { stage = .findingInstructions }
+        let texts = zip(improved, redacted).map { new, page in new == page.text ? new : Redactor.hideAgain(page.hidden, in: new) }
+
+        cleanedText = texts.first ?? ""
+        cleanedPages = texts.enumerated().map { index, text in
+            CleanedPage(number: index + 1, text: text, removedCount: redacted[index].removedCount,
+                        picture: GeminiPageReader.isAvailable ? pictures[index] : nil)
+        }
+
         do {
-            draft = try await PlanReaders.current.readPlan(from: redacted.map(\.text), paper: paper)
+            draft = try await PlanReaders.current.readPlan(from: texts, paper: paper)
             cardIndex = 0
             removedIDs = []
             withAnimation { stage = .done }

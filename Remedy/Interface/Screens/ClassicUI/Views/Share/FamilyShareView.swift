@@ -2,7 +2,7 @@
 //  FamilyShareView.swift
 //  Remedy
 //
-//  classic share with family
+//  classic share and print any page for any day
 //
 
 import SwiftUI
@@ -13,18 +13,39 @@ struct FamilyShareView: View {
     @Query(sort: \CarePlan.createdAt, order: .reverse) private var plans: [CarePlan]
     @Environment(\.dismiss) private var dismiss
 
-    // UI only the finished PDF
+    // UI only which page and day and the finished PDF
+    @State private var kind: PrintKind = .family
+    @State private var day = AppClock.now()
     @State private var pdfURL: URL?
     @State private var didFail = false
 
     var body: some View {
-        let viewModel = FamilyShareViewModel(plan: plans.first, now: AppClock.now())
+        let viewModel = FamilyShareViewModel(plan: plans.first, now: day, kind: kind)
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.betweenCards) {
                     Text(viewModel.intro)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+
+                    Picker(viewModel.title, selection: $kind) {
+                        ForEach(PrintKind.allCases) { option in
+                            Text(option.title).tag(option)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
+                    Text(kind.detail)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+
+                    if kind.usesDay {
+                        DatePicker(viewModel.dayLabel, selection: $day, in: viewModel.dayRange, displayedComponents: .date)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .glassEffect(.regular, in: .capsule)
+                    }
+
                     FamilySheetPreview(sheet: viewModel.sheet)
                 }
                 .padding(.horizontal, Spacing.screenEdge)
@@ -44,7 +65,9 @@ struct FamilyShareView: View {
                     .padding(.vertical, 10)
                     .background(.bar)
             }
-            .task {
+            // a new PDF each time the page or day changes
+            .task(id: "\(kind.rawValue)-\(day.timeIntervalSince1970)") {
+                pdfURL = nil
                 pdfURL = viewModel.makePDF()
                 didFail = pdfURL == nil
             }
@@ -65,7 +88,7 @@ struct FamilyShareButton: View {
                     .font(.headline)
                     .frame(maxWidth: .infinity, minHeight: 50)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.glassProminent)
             .tint(Color.remedyTeal)
         } else if didFail {
             Text(viewModel.failedText)

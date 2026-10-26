@@ -24,8 +24,12 @@ struct SettingsView: View {
     @State private var keyVersion = 0
     @AppStorage(NotificationService.enabledKey) private var remindersOn = true
     @AppStorage(HealthService.stepsOnKey) private var healthStepsOn = false
+    @AppStorage(GeminiPageReader.enabledKey) private var sendsPictures = true
     // saved on the phone RootView switches the look when it changes
     @AppStorage(AppLook.storageKey) private var look: AppLook = .classic
+    @AppStorage(AppTheme.storageKey) private var theme: AppTheme = .remedy
+    // UI only the theme tapped here saved when Settings closes so this sheet stays open
+    @State private var pickedTheme: AppTheme?
 
     var body: some View {
         let viewModel = SettingsViewModel(plan: plans.first, now: AppClock.now())
@@ -53,6 +57,14 @@ struct SettingsView: View {
                     Text(viewModel.lookTitle)
                 } footer: {
                     Text(viewModel.lookFooter)
+                }
+
+                Section {
+                    ThemePicker(theme: Binding(get: { pickedTheme ?? theme }, set: { pickedTheme = $0 }))
+                } header: {
+                    Text(viewModel.themeTitle)
+                } footer: {
+                    Text(viewModel.themeFooter)
                 }
 
                 if viewModel.hasPlan {
@@ -84,6 +96,7 @@ struct SettingsView: View {
                 Section {
                     LabeledContent(viewModel.aiUsesLabel, value: viewModel.aiStatusText)
                     if viewModel.hasGeminiKey {
+                        Toggle(viewModel.picturesToggle, isOn: $sendsPictures)
                         Button(viewModel.removeKeyTitle, role: .destructive) {
                             viewModel.removeGeminiKey()
                             keyVersion += 1
@@ -114,6 +127,14 @@ struct SettingsView: View {
                         Text(viewModel.healthTitle)
                     } footer: {
                         Text(viewModel.healthFooter)
+                    }
+                }
+
+                Section {
+                    NavigationLink {
+                        ConnectionCheckView()
+                    } label: {
+                        Label(viewModel.connectionsTitle, systemImage: "antenna.radiowaves.left.and.right")
                     }
                 }
 
@@ -148,6 +169,9 @@ struct SettingsView: View {
             }
             .navigationTitle(viewModel.title)
             .navigationBarTitleDisplayMode(.inline)
+            .onDisappear {
+                if let pickedTheme { theme = pickedTheme }
+            }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(viewModel.doneTitle) { dismiss() }

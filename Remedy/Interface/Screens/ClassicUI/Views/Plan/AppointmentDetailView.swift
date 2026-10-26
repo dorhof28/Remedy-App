@@ -86,7 +86,7 @@ struct AppointmentDetailView: View {
                         .frame(maxWidth: .infinity)
                         .contentTransition(.symbolEffect(.replace))
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
                 .disabled(!viewModel.canAddToCalendar)
                 .sensoryFeedback(.success, trigger: viewModel.isInCalendar) { _, isIn in isIn }
                 .sheet(isPresented: $isAddingToCalendar) {
@@ -106,7 +106,7 @@ struct AppointmentDetailView: View {
                             Label(viewModel.directionsTitle, systemImage: "map.fill")
                                 .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.glass)
                     }
                 }
             }

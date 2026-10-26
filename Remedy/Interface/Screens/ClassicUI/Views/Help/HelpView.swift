@@ -87,7 +87,7 @@ struct ContactRowView: View {
                     Label(callTitle, systemImage: "phone.fill")
                         .labelStyle(.titleAndIcon)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.glass)
                 .buttonBorderShape(.capsule)
                 .tint(Color.remedyTeal)
                 .accessibilityLabel("\(callTitle) \(row.name)")

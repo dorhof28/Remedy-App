@@ -1,0 +1,21 @@
+{
+  "id": "example-preop-range-and-weeks",
+  "paper": "beforeSurgery",
+  "checkedBy": "",
+  "note": "A day range and weeks instead of days",
+  "pageText": "Dear Ms. Chen,\nPlease follow these steps before your operation.\n\nStop Eliquis (apixaban) 2 to 3 days before surgery.\nStop Ozempic 1 week before surgery.\nShower with Hibiclens the night before surgery.",
+  "answer": [
+    "Apixaban: otherNames [\"eliquis\"], action stop, whenText \"2 to 3 days before surgery\", startDay -3",
+    "Ozempic: action stop, whenText \"1 week before surgery\", startDay -7",
+    "Task \"Shower with Hibiclens\": dueDay -1"
+  ],
+  "checks": {
+    "stopDays": {
+      "Eliquis": -3,
+      "Ozempic": -7
+    },
+    "names": [
+      "Chen"
+    ]
+  }
+}

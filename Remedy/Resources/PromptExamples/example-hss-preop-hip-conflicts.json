@@ -1,0 +1,31 @@
+{
+  "id": "example-hss-preop-hip-conflicts",
+  "paper": "beforeSurgery",
+  "checkedBy": "",
+  "source": "samples/clean/03-preop-hip-Pietrangeli.pdf (page 1, cut down)",
+  "note": "A handwritten moved date, a do-not-stop line inside a stop list, a specialist rule that overrides the general one, and evening-before and morning-of groups",
+  "pageText": "Walter J. Pietrangeli MRN: 90552108 10/14/2026 11:00 AM Internist at HSS Main\nDirections for Your Medications Preoperatively\nmoved → Mon 11/16 !!\nYour surgery is scheduled for Monday, November 9, 2026.\n1. Seven (7) days prior to your surgery, do not take the following medications and supplements:\n• Regular Aspirin (325mg)\n• Vitamins including Multivitamins\n• Continue your aspirin 81 mg every day. Do NOT stop it (you have a heart stent).\n2. Plavix (clopidogrel) 75 mg: per Dr. Aaron Feld (cardiology), stop five (5) days before surgery. This is\ndifferent from the 7 days on the general HSS list.\n6. Do not take the following Medication (s) the evening prior to surgery:\nLisinopril\n7. Do not take the following Medication(s) the morning of surgery:\nFurosemide (Lasix)\nSpironolactone\n9. Please take the night before surgery:\nInsulin glargine (Lantus) – take 80% of your usual dose: 18 units instead of 22 units\nWalter J. Pietrangeli (MRN: 90552108) • Printed at 10/14/2026 12:29 PM Page 1 of 4 Epic\nSAMPLE – fictitious patient, for app testing only. Not a real HSS document. Made-up medical content.",
+  "answer": [
+    "Aspirin: strength \"325 mg\", action stop, startDay -7",
+    "Vitamins including multivitamins: isGroup true, action stop, startDay -7",
+    "Aspirin 81 mg: name \"Aspirin\", strength \"81 mg\", action take. It is inside the stop list but says Do NOT stop it, reason \"you have a heart stent\"",
+    "Clopidogrel: otherNames [\"plavix\"], strength \"75 mg\", action stop, whenText \"stop five (5) days before surgery\", startDay -5. The cardiologist's 5 days wins over the general 7 days",
+    "Lisinopril: action stop, whenText \"the evening prior to surgery\", startDay -1, endDay -1",
+    "Furosemide: otherNames [\"lasix\"], action stop, whenText \"the morning of surgery\", startDay 0, endDay 0",
+    "Spironolactone: action stop, startDay 0, endDay 0",
+    "Insulin glargine: otherNames [\"lantus\"], amount \"18 units\", action take, startDay -1, endDay -1, exception \"80% of your usual dose: 18 units instead of 22 units\"",
+    "surgeryDate: the typed date is November 9, 2026 but a handwritten note says moved to Mon 11/16. Leave surgeryDate empty so the patient picks"
+  ],
+  "checks": {
+    "stopDays": {
+      "Regular Aspirin": -7,
+      "Plavix": -5,
+      "Lisinopril": -1,
+      "Furosemide": 0,
+      "Spironolactone": 0
+    },
+    "names": [
+      "Walter J. Pietrangeli"
+    ]
+  }
+}

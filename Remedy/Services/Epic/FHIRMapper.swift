@@ -29,9 +29,12 @@ enum FHIRMapper {
 
     // one order to a draft medicine
     static func medicine(_ order: FHIRMedicationRequest) -> DraftMedicine? {
-        let rawName = order.medicationCodeableConcept?.bestText ?? order.medicationReference?.display ?? ""
-        let name = rawName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !name.isEmpty else { return nil }
+        let rawName = (order.medicationCodeableConcept?.bestText ?? order.medicationReference?.display ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !rawName.isEmpty else { return nil }
+        // "aspirin 81 MG chewable tablet" to aspirin and 81 mg
+        let cleaned = MedicineNameCleaner.clean(rawName)
+        let name = cleaned.name
 
         let dosage = order.firstDosage
         let action: MedicineAction
@@ -60,8 +63,9 @@ enum FHIRMapper {
 
         return DraftMedicine(
             name: name,
-            alsoKnownAs: otherNames(in: name),
+            alsoKnownAs: Array(Set(cleaned.otherNames + otherNames(in: rawName))).filter { $0 != name.lowercased() }.sorted(),
             action: action,
+            strength: cleaned.strength,
             amount: amountText(dosage?.doseAndRate?.first?.doseQuantity),
             timesOfDay: action == .take
                 ? AIPlanConverter.doseTimes(clockTimes: schedule?.timeOfDay ?? [], timesPerDay: timesPerDay, everyHours: everyHours)
@@ -69,7 +73,7 @@ enum FHIRMapper {
             minHoursBetween: action == .takeAsNeeded ? everyHours : nil,
             reason: reason,
             // the record's own words shown under the item like a quote from paper
-            quote: dosage?.text ?? dosage?.patientInstruction ?? name)
+            quote: dosage?.text ?? dosage?.patientInstruction ?? rawName)
     }
 
     // so Ask can match "Can I take Tylenol?"

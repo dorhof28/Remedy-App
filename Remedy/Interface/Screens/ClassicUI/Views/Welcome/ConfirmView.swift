@@ -44,7 +44,7 @@ struct ConfirmView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
 
                 HStack(spacing: 10) {
                     Button {
@@ -60,7 +60,7 @@ struct ConfirmView: View {
                             .frame(maxWidth: .infinity)
                     }
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.glass)
             }
             .controlSize(.large)
             .padding(.horizontal, Spacing.screenEdge)

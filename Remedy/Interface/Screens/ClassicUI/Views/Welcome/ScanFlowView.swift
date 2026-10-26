@@ -43,11 +43,12 @@ struct ScanFlowView: View {
     }
 }
 
-// MARK: - Reading (3-step checklist, then the cleaned page)
+// MARK: - Reading (live steps then what was found and the cleaned page)
 
 // progress while reading the papers
 struct ReadingView: View {
     let viewModel: ScanFlowViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // is the full text open
     @State private var isShowingAll = false
@@ -56,33 +57,40 @@ struct ReadingView: View {
         ScrollView {
             VStack(spacing: Spacing.betweenCards) {
                 TopCard(title: viewModel.readingTitle) {
-                    IconTile(symbol: "doc.text.magnifyingglass", tone: .info, size: 72)
+                    ReadingPageAnimation(isScanning: viewModel.pageIsScanning,
+                                         isBlackedOut: viewModel.pageIsBlackedOut,
+                                         badge: viewModel.stage.symbol,
+                                         isDone: viewModel.isReadingDone)
                 }
 
                 Card {
                     VStack(alignment: .leading, spacing: 16) {
                         ForEach(viewModel.stages) { stage in
-                            HStack(spacing: 12) {
-                                ZStack {
-                                    if viewModel.isDone(stage) {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundStyle(Tone.good.color)
-                                            .transition(.scale.combined(with: .opacity))
-                                    } else if viewModel.isRunning(stage) {
-                                        ProgressView()
-                                    } else {
-                                        Image(systemName: "circle")
-                                            .foregroundStyle(Color.inactive)
-                                    }
-                                }
-                                .font(.title3)
-                                .frame(width: 28)
-                                Text(stage.title)
-                                    .foregroundStyle(viewModel.isDone(stage) || viewModel.isRunning(stage) ? .primary : .secondary)
-                            }
-                            .accessibilityElement(children: .combine)
+                            ReadingStageRow(stage: stage,
+                                            isDone: viewModel.isDone(stage),
+                                            isRunning: viewModel.isRunning(stage),
+                                            detail: viewModel.detail(for: stage))
                         }
                     }
+                }
+
+                // a real clock so a long wait never looks stuck
+                if !viewModel.isReadingDone {
+                    TimelineView(.periodic(from: .now, by: 1)) { context in
+                        Label(viewModel.waitText(now: context.date), systemImage: "hourglass")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .contentTransition(.numericText())
+                            .opacity(viewModel.waitText(now: context.date).isEmpty ? 0 : 1)
+                            .animation(.easeInOut, value: viewModel.waitText(now: context.date))
+                    }
+                }
+
+                // what was found counting up to the real numbers
+                if viewModel.isReadingDone {
+                    FoundCountsCard(viewModel: viewModel)
+                        .task { await viewModel.countUp(reduceMotion: reduceMotion) }
+                        .transition(.scale(scale: 0.95).combined(with: .opacity))
                 }
 
                 // what was actually sent the page with personal info blacked out
@@ -124,7 +132,7 @@ struct ReadingView: View {
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.glassProminent)
                     .controlSize(.large)
                 }
             }
@@ -134,6 +142,79 @@ struct ReadingView: View {
         .navigationBarBackButtonHidden()
         .sheet(isPresented: $isShowingAll) {
             SentPagesView(viewModel: viewModel)
+        }
+    }
+}
+
+// one reading step with its moving icon and what really happened
+struct ReadingStageRow: View {
+    let stage: ReadingStage
+    let isDone: Bool
+    let isRunning: Bool
+    let detail: String
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: isDone ? "checkmark.circle.fill" : stage.symbol)
+                .font(.title3)
+                .foregroundStyle(isDone ? Tone.good.color : isRunning ? Color.remedyTeal : Color.inactive)
+                .contentTransition(.symbolEffect(.replace))
+                .symbolEffect(.pulse, isActive: isRunning && !reduceMotion)
+                .frame(width: 28)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(stage.title)
+                    .fontWeight(isRunning ? .semibold : .regular)
+                    .foregroundStyle(isDone || isRunning ? .primary : .secondary)
+                if !detail.isEmpty {
+                    Text(detail)
+                        .font(.footnote)
+                        .foregroundStyle(isDone ? Tone.good.color : Color.secondary)
+                        .contentTransition(.numericText())
+                        .transition(.opacity)
+                }
+            }
+            Spacer(minLength: 0)
+            if isRunning {
+                ProgressView()
+                    .controlSize(.small)
+            }
+        }
+        .animation(.snappy, value: detail)
+        .accessibilityElement(children: .combine)
+        .accessibilityValue(isDone ? "Done" : isRunning ? "Working" : "Waiting")
+    }
+}
+
+// medicines rules visits and to-dos found ticking up
+struct FoundCountsCard: View {
+    let viewModel: ScanFlowViewModel
+
+    var body: some View {
+        Card {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(viewModel.foundTitle)
+                    .font(.headline)
+                HStack(spacing: 8) {
+                    ForEach(Array(viewModel.foundCounts.enumerated()), id: \.element.id) { index, found in
+                        VStack(spacing: 4) {
+                            Image(systemName: found.symbol)
+                                .font(.title3)
+                                .foregroundStyle(found.tone.color)
+                            Text("\(viewModel.shownCount(index))")
+                                .font(.title.weight(.bold))
+                                .monospacedDigit()
+                                .contentTransition(.numericText())
+                            Text(found.title)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel("\(found.total) \(found.title)")
+                    }
+                }
+            }
         }
     }
 }
@@ -162,6 +243,17 @@ struct SentPagesView: View {
                                         .foregroundStyle(Tone.good.color)
                                 }
                                 Divider()
+                                if let picture = page.picture {
+                                    Image(uiImage: picture)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(.quaternary))
+                                    Text(viewModel.pictureCaption)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    Divider()
+                                }
                                 RedactedText(text: page.text)
                                     .font(.callout)
                                     .lineSpacing(3)
@@ -229,7 +321,7 @@ struct FinishView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
                 .controlSize(.large)
                 .sensoryFeedback(.success, trigger: viewModel.step)
             }

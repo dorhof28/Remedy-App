@@ -267,10 +267,10 @@ struct CallButton: View {
         if let phoneURL {
             if prominent {
                 Link(destination: phoneURL) { label }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.glassProminent)
             } else {
                 Link(destination: phoneURL) { label }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.glass)
             }
         }
     }

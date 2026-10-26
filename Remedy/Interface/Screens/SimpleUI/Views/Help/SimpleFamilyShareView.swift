@@ -19,7 +19,7 @@ struct SimpleFamilyShareView: View {
     var body: some View {
         let viewModel = FamilyShareViewModel(plan: plans.first, now: AppClock.now())
         SimpleScreen(title: viewModel.title) {
-            Text(viewModel.intro)
+            Text(viewModel.familyIntro)
                 .font(.title3)
                 .foregroundStyle(.secondary)
                 .lineLimit(4)

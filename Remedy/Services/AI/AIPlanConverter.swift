@@ -16,7 +16,9 @@ enum AIPlanConverter {
     static func isSurgeryLine(for date: String, in pages: [String]) -> Bool {
         let surgeryWords = ["surgery", "operation", "procedure", "surgical", "operative"]
         let visitWords = ["visit", "consult", "appointment", "seen", "printed", "encounter",
-                          "testing", "evaluation", "clinic", "office", "after visit summary"]
+                          "testing", "evaluation", "clinic", "office", "after visit summary",
+                          "pre-op", "preop", "pre op", "pre-surgery", "presurgery", "before surgery",
+                          "preoperative", "pre-operative", "instructions", "date of service", "follow"]
         let lines = pages.flatMap { $0.components(separatedBy: .newlines) }
             .map { $0.lowercased() }
             .filter { $0.contains(date.lowercased()) }
@@ -32,10 +34,20 @@ enum AIPlanConverter {
         var thrownOut = 0
 
         draft.procedure = plans.map(\.procedure).first { !$0.isEmpty } ?? ""     // just a label, the patient sees it
-        draft.surgeryDate = plans.map(\.surgeryDate)
+        // a labelled date beats the ai and the ai's date can't be a visit day
+        let visitDays = plans.flatMap(\.visits).compactMap { ExplicitDateParser.parse(date: $0.dateText) }
+        let labelled = SurgeryDateFinder.find(in: pages)
+        let aiDate = plans.map(\.surgeryDate)
             .filter { source.contains($0) && isSurgeryLine(for: $0, in: pages) }
             .compactMap { ExplicitDateParser.parse(date: $0) }
-            .first
+            .first { !visitDays.contains($0) }
+        // two different dates like a typed date and a handwritten moved to
+        // so the patient picks instead of us guessing
+        if let labelled, let aiDate, labelled != aiDate {
+            draft.warnings.append("Your papers show two surgery dates, \(DayMath.shortDate(labelled)) and \(DayMath.shortDate(aiDate)). Pick the right one at the end.")
+        } else {
+            draft.surgeryDate = labelled ?? aiDate
+        }
         draft.pages = pages.enumerated().map { DraftPage(pageNumber: $0.offset + 1, redactedText: $0.element) }
 
         for plan in plans {
@@ -45,19 +57,20 @@ enum AIPlanConverter {
                 } else { thrownOut += 1 }
             }
             for r in plan.rules {
-                guard !r.title.isEmpty, source.contains(r.quote) else { thrownOut += 1; continue }
+                guard !r.title.isEmpty, isOnPage(r.quote, source) else { thrownOut += 1; continue }
+                let evidence = r.quote + " " + r.whenText + " " + context(of: r.quote, in: source.text).joined(separator: " ")
                 draft.rules.append(DraftRule(title: r.title, isAllowed: r.isAllowed, condition: r.condition,
-                                             startDay: checked(r.startDay, in: r.quote),
-                                             endDay: checked(r.endDay, in: r.quote),
+                                             startDay: checked(r.startDay, in: evidence),
+                                             endDay: checked(r.endDay, in: evidence),
                                              quote: r.quote, quotePage: page(of: r.quote, in: pages)))
             }
             for t in plan.tasks {
-                guard !t.title.isEmpty, source.contains(t.quote) else { thrownOut += 1; continue }
+                guard !t.title.isEmpty, isOnPage(t.quote, source) else { thrownOut += 1; continue }
                 draft.tasks.append(DraftTask(title: t.title, dueDay: checked(t.dueDay, in: t.quote),
                                              quote: t.quote, quotePage: page(of: t.quote, in: pages)))
             }
             for v in plan.visits {
-                guard !v.title.isEmpty, source.contains(v.quote) else { thrownOut += 1; continue }
+                guard !v.title.isEmpty, isOnPage(v.quote, source) else { thrownOut += 1; continue }
                 addVisit(v, to: &draft, source: source, pages: pages)
             }
             for c in plan.contacts {
@@ -78,13 +91,23 @@ enum AIPlanConverter {
     // MARK: - Pieces
 
     private static func medicine(_ m: AIMedicine, source: SourceMatcher, pages: [String]) -> DraftMedicine? {
-        let name = m.name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let quoteFound = source.contains(m.quote)
-        guard !name.isEmpty, quoteFound || source.contains(name) else { return nil }   // made up
+        let raw = m.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleaned = m.isGroup ? CleanMedicineName(name: raw, strength: "", otherNames: []) : MedicineNameCleaner.clean(raw)
+        let name = cleaned.name
+        let strength = m.strength.isEmpty ? cleaned.strength : m.strength
+        let quoteFound = isOnPage(m.quote, source)
+        guard !name.isEmpty, quoteFound || source.contains(name) || source.contains(raw) else { return nil }   // made up
 
-        // what we check numbers against the quote plus the line that names it
+        // what we check numbers against the quote the when words and the lines above the name
         let quote = quoteFound ? m.quote : (source.firstLine(containing: name) ?? m.quote)
-        let evidence = quote + " " + (source.firstLine(containing: name) ?? "")
+        let nameOnPage = source.contains(raw) ? raw : name
+        let evidence = [quote, m.whenText, context(of: nameOnPage, in: source.text).joined(separator: " ")].joined(separator: " ")
+
+        // stop days come from the words not the ai's number
+        // so a list under 7 days before surgery gets -7 even when the ai left it empty
+        let writtenDay = source.contains(m.whenText) ? DayPhraseParser.day(in: m.whenText) : nil
+        // a heading only counts for before surgery days so a far off follow up line isnt used
+        let stopDay = writtenDay ?? headingDay(of: nameOnPage, in: source.text).flatMap { $0 <= 0 ? $0 : nil }
 
         let action: MedicineAction
         switch m.action {
@@ -95,19 +118,21 @@ enum AIPlanConverter {
         }
         // other names in lower case no repeats same order
         var names: [String] = []
-        for other in m.otherNames.map({ $0.lowercased() }) where !other.isEmpty && !names.contains(other) {
+        for other in (cleaned.otherNames + m.otherNames).map({ $0.lowercased() })
+        where !other.isEmpty && other != name.lowercased() && !names.contains(other) {
             names.append(other)
         }
         return DraftMedicine(
             name: name, alsoKnownAs: names, isGroup: m.isGroup, action: action,
-            startDay: checked(m.startDay, in: evidence), endDay: checked(m.endDay, in: evidence),
-            strength: source.containsIgnoringSpaces(m.strength) ? m.strength : "",
+            startDay: action == .stop ? (stopDay ?? checked(m.startDay, in: evidence)) : checked(m.startDay, in: evidence),
+            endDay: checked(m.endDay, in: evidence),
+            strength: source.containsIgnoringSpaces(strength) ? strength : "",
             amount: source.containsIgnoringSpaces(m.amount) ? m.amount : "",
             timesOfDay: action == .take ? doseTimes(m) : [],
             foodNote: m.foodNote, onlyIf: m.onlyIf,
             minHoursBetween: action == .takeAsNeeded ? m.everyHours : nil,
             maxPerDay: m.maxPerDay, reason: m.reason, exception: m.exception,
-            quote: quote, quotePage: page(of: quote, in: pages))
+            quote: quote, quotePage: page(of: quote, in: pages) ?? page(of: nameOnPage, in: pages))
     }
 
     // a visit with a full written date becomes a visit
@@ -159,6 +184,32 @@ enum AIPlanConverter {
     }
 
     // MARK: - Small helpers
+
+    // the quote is on the page whole or in pieces like a heading then its list item
+    static func isOnPage(_ quote: String, _ source: SourceMatcher) -> Bool {
+        if source.contains(quote) { return true }
+        let parts = quote.components(separatedBy: CharacterSet(charactersIn: ":;\n\u{2022}"))
+            .filter { SourceMatcher.normalize($0).count >= 3 }
+        return parts.count > 1 && parts.allSatisfy { source.contains($0) }
+    }
+
+    // the line with this text and the lines above it so a list heading counts
+    static func context(of fragment: String, in text: String, above: Int = 12) -> [String] {
+        let lines = text.components(separatedBy: .newlines)
+        let needle = SourceMatcher.normalize(fragment)
+        guard !needle.isEmpty, let index = lines.firstIndex(where: { SourceMatcher.normalize($0).contains(needle) }) else { return [] }
+        return Array(lines[max(0, index - above)...index])
+    }
+
+    // the closest when words at or above the line like a 7 days before heading
+    // stops at a new numbered item so 3 eliquis doesnt take the 4 days from item 2
+    static func headingDay(of fragment: String, in text: String) -> Int? {
+        for line in context(of: fragment, in: text).reversed() {
+            if let day = DayPhraseParser.day(in: line) { return day }
+            if line.range(of: "^\\s*\\d{1,2}[.)]\\s", options: .regularExpression) != nil { return nil }
+        }
+        return nil
+    }
 
     // keeps a day number only if it's really written
     private static func checked(_ day: Int?, in text: String) -> Int? {

@@ -23,14 +23,15 @@ enum GeminiSchema {
 
     private static let medicine: [String: Any] = object([
         ("quote", text("The exact words from the papers, word for word. For an item in a list, the heading and the item")),
-        ("name", text("The medicine or group name as written")),
-        ("otherNames", list(text("Another name for it written on the papers, lower case"))),
+        ("name", text("Only the medicine's name, with no strength, amount or pill type, like \"Aspirin\" or \"Oxycodone\". For a group, the group, like \"Vitamins and supplements\"")),
+        ("otherNames", list(text("A brand, generic or nickname written on the papers, like \"baby aspirin\", lower case"))),
         ("isGroup", yesNo("true for a group, like \"any other NSAID\"")),
         ("action", choice(["take", "takeAsNeeded", "stop", "okToTake"])),
-        ("startDay", day("First day it applies. Surgery day is 0, the day before is -1, the day after is 1")),
+        ("whenText", text("The words that say when, copied exactly, like \"7 days before surgery\". For a list, the heading's words. Empty if not written")),
+        ("startDay", day("First day it applies. Surgery day is 0, the day before is -1, the day after is 1. \"7 days before surgery\" is -7")),
         ("endDay", day("Last day it applies, counted the same way")),
-        ("strength", text("Strength of one pill, like \"500 mg\"")),
-        ("amount", text("How many each time, like \"2 tablets\"")),
+        ("strength", text("Strength of one pill or dose as written, like \"81 mg\" or \"5-325 mg\". Empty if not written")),
+        ("amount", text("How many each time, like \"1 tablet\" or \"2 puffs\". Empty if not written")),
         ("clockTimes", list(text("A clock time only if printed, as HH:mm in 24 hours"))),
         ("timesPerDay", day("Times a day, like 2 for \"twice a day\"")),
         ("everyHours", day("Hours between doses, like 8 for \"every 8 hours\"")),
@@ -46,6 +47,7 @@ enum GeminiSchema {
         ("title", text("Short title, like \"No driving\" or \"Showers\"")),
         ("isAllowed", yesNo("true if it says you may, false if it says don't")),
         ("condition", text("Only while something is true, like \"While you take oxycodone\"")),
+        ("whenText", text("The words that say when, copied exactly, like \"for 2 weeks after surgery\". Empty if not written")),
         ("startDay", day("First day it applies, counted from surgery")),
         ("endDay", day("Last day it applies, counted from surgery")),
     ])

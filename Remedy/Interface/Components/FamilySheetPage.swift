@@ -69,15 +69,21 @@ struct FamilyBlockView: View {
                 .font(.system(size: 10, weight: .bold))
                 .foregroundStyle(block.tone == .neutral ? Color.gray : block.tone.color)
             ForEach(block.lines) { line in
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(line.title)
-                        .font(.system(size: 11, weight: .semibold))
-                        .lineLimit(2)
-                    if !line.detail.isEmpty {
-                        Text(line.detail)
-                            .font(.system(size: 9.5))
-                            .foregroundStyle(.gray)
+                HStack(alignment: .firstTextBaseline, spacing: 5) {
+                    if line.hasCheckbox {
+                        Image(systemName: "square")
+                            .font(.system(size: 11))
+                    }
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(line.title)
+                            .font(.system(size: 11, weight: .semibold))
                             .lineLimit(2)
+                        if !line.detail.isEmpty {
+                            Text(line.detail)
+                                .font(.system(size: 9.5))
+                                .foregroundStyle(.gray)
+                                .lineLimit(2)
+                        }
                     }
                 }
             }

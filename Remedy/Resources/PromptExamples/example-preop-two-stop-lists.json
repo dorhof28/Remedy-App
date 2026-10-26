@@ -1,0 +1,27 @@
+{
+  "id": "example-preop-two-stop-lists",
+  "paper": "beforeSurgery",
+  "checkedBy": "",
+  "note": "Two stop lists with different days, a name label and a visit date at the top. No surgery date is printed, so the patient enters it",
+  "pageText": "Patient: Jane Rivera    MRN: 4471982\nVisit date: 10/12/2026\nPre-Surgery Instructions\n\n7 days before surgery, STOP taking:\n• Aspirin 325 mg\n• Fish oil and all vitamins\n\n4 days before surgery, STOP taking:\n• Ibuprofen (Advil, Motrin)\n• Naproxen (Aleve)\n\nYou may take Tylenol (acetaminophen) for pain.\nBring your inhalers to the hospital.",
+  "answer": [
+    "Aspirin: action stop, strength \"325 mg\", whenText \"7 days before surgery\", startDay -7",
+    "Fish oil and all vitamins: isGroup true, action stop, whenText \"7 days before surgery\", startDay -7",
+    "Ibuprofen: otherNames [\"advil\", \"motrin\"], action stop, whenText \"4 days before surgery\", startDay -4",
+    "Naproxen: otherNames [\"aleve\"], action stop, whenText \"4 days before surgery\", startDay -4",
+    "Acetaminophen: otherNames [\"tylenol\"], action okToTake, onlyIf \"pain\"",
+    "Task \"Bring your inhalers to the hospital\": dueDay 0",
+    "surgeryDate empty: only the visit date 10/12/2026 is printed. The patient enters the surgery date and every day counts from it"
+  ],
+  "checks": {
+    "stopDays": {
+      "Aspirin": -7,
+      "Fish oil": -7,
+      "Ibuprofen": -4,
+      "Naproxen": -4
+    },
+    "names": [
+      "Jane Rivera"
+    ]
+  }
+}

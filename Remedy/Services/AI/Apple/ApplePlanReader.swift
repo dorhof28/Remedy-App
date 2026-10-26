@@ -40,7 +40,7 @@ struct ApplePlanReader: PlanReader {
     private func askCloud(_ pages: [String], paper: PaperKind) async throws -> AIPlan {
         let cloud = PrivateCloudComputeLanguageModel()
         if cloud.quotaUsage.isLimitReached { throw PlanReaderError.dailyLimitReached }
-        let session = LanguageModelSession(model: cloud, instructions: AIPrompt.instructions)
+        let session = LanguageModelSession(model: cloud, instructions: AIPrompt.instructions(for: paper))
         let prompt = AIPrompt.prompt(paper: paper, pages: Array(pages.enumerated()))
         return try await session.respond(to: prompt, generating: AIPlan.self, options: Self.options).content
     }
@@ -71,7 +71,7 @@ struct ApplePlanReader: PlanReader {
 
     // one piece
     private func askPhone(piece: String, page: Int, paper: PaperKind, splits: Int) async throws -> [AIPlan] {
-        let session = LanguageModelSession(model: SystemLanguageModel.default, instructions: AIPrompt.instructions)
+        let session = LanguageModelSession(model: SystemLanguageModel.default, instructions: AIPrompt.instructions(for: paper, examples: 1))
         let prompt = AIPrompt.prompt(paper: paper, pages: [(offset: page, element: piece)])
         do {
             return [try await session.respond(to: prompt, generating: AIPlan.self, options: Self.options).content]

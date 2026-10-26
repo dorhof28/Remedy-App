@@ -145,7 +145,7 @@ struct AskIntroCard: View {
     private var chips: some View {
         ForEach(viewModel.suggestions, id: \.self) { question in
             Button(question) { onAsk(question) }
-                .buttonStyle(.bordered)
+                .buttonStyle(.glass)
                 .buttonBorderShape(.capsule)
                 .tint(Color.remedyTeal)
                 .font(.subheadline.weight(.medium))

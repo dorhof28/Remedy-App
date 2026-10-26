@@ -16,6 +16,11 @@ enum PDFReader {
 
     // one string per page
     static func read(_ url: URL) async throws -> [String] {
+        try await scan(url).map(\.text)
+    }
+
+    // text pages keep their text scanned pages get read with the picture
+    static func scan(_ url: URL) async throws -> [ScannedPage] {
         // files from the Files app need permission while we read them
         let hasAccess = url.startAccessingSecurityScopedResource()
         defer { if hasAccess { url.stopAccessingSecurityScopedResource() } }
@@ -24,16 +29,16 @@ enum PDFReader {
         guard document.pageCount > 0 else { throw PDFReaderError.empty }
         guard document.pageCount <= maxPages else { throw PDFReaderError.tooLong }
 
-        var pages: [String] = []
+        var pages: [ScannedPage] = []
         for index in 0..<document.pageCount {
             guard let page = document.page(at: index) else { continue }
             let text = (page.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
 
             // fewer than 20 letters = a scanned picture not real text
             if text.filter({ $0.isLetter || $0.isNumber }).count >= 20 {
-                pages.append(text)
+                pages.append(ScannedPage(text: text))
             } else {
-                pages.append(await TextReader.read(image(of: page)))
+                pages.append(await TextReader.scan(image(of: page)))
             }
         }
         return pages

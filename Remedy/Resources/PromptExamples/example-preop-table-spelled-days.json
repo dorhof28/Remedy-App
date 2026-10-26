@@ -1,0 +1,20 @@
+{
+  "id": "example-preop-table-spelled-days",
+  "paper": "beforeSurgery",
+  "checkedBy": "",
+  "note": "Days spelled out with a number in brackets and a table of medicines",
+  "pageText": "Medication | Instruction\nWarfarin (Coumadin) | Stop five (5) days prior to surgery\nMetformin | Do not take the morning of surgery\nLisinopril | Take with a sip of water the morning of surgery",
+  "answer": [
+    "Warfarin: otherNames [\"coumadin\"], action stop, whenText \"five (5) days prior to surgery\", startDay -5",
+    "Metformin: action stop, whenText \"the morning of surgery\", startDay 0, endDay 0",
+    "Lisinopril: action take, whenText \"the morning of surgery\", startDay 0, endDay 0, foodNote \"with a sip of water\"",
+    "surgeryDate empty: not printed, the patient enters it"
+  ],
+  "checks": {
+    "stopDays": {
+      "Warfarin": -5,
+      "Metformin": 0
+    },
+    "names": []
+  }
+}

@@ -16,8 +16,18 @@ struct RootView: View {
 
     // classic or Simple picked in Settings
     @AppStorage(AppLook.storageKey) private var look: AppLook = .classic
+    // the theme picked in Settings
+    @AppStorage(AppTheme.storageKey) private var theme: AppTheme = .remedy
 
     var body: some View {
+        screens
+            .tint(Color.remedyTeal)
+            .preferredColorScheme(theme.colorScheme)
+            .id(theme)      // redraws every colour when the theme changes
+    }
+
+    @ViewBuilder
+    private var screens: some View {
         // themselves as soon as the first plan is saved
         if plans.isEmpty {
             ScanFlowView()
@@ -45,6 +55,10 @@ struct RootView: View {
             Tab("Ask", systemImage: "bubble.left.and.text.bubble.right.fill") {
                 AskView()
             }
+        }
+        .tabBarMinimizeBehavior(.onScrollDown)
+        .tabViewBottomAccessory {
+            NextUpAccessory()
         }
     }
 }

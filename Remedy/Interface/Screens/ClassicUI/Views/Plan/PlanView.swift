@@ -16,7 +16,7 @@ struct PlanView: View {
 
     // UI only the day picked in the journey
     @State private var pickedDay: Int?
-    // UI only is "Share with family" open
+    // UI only is share and print open
     @State private var isSharing = false
 
     var body: some View {
@@ -32,7 +32,7 @@ struct PlanView: View {
                                 Button {
                                     isSharing = true
                                 } label: {
-                                    Label("Share with family", systemImage: "square.and.arrow.up")
+                                    Label("Share and print", systemImage: "printer")
                                 }
                             }
                         }
@@ -82,7 +82,16 @@ struct PlanView: View {
                             .transition(.opacity)
                     }
 
-                    // 2 not yet
+                    // 2 the whole journey at a glance tap a day to see it above
+                    SectionCard(title: viewModel.overviewTitle, symbol: "map",
+                                detail: viewModel.overviewCountText, rememberAs: "plan.overview") {
+                        JourneyTimeline(rows: viewModel.overviewRows) { day in
+                            Motion.perform(reduceMotion) { pickedDay = day }
+                        }
+                        .padding(.vertical, 6)
+                    }
+
+                    // 3 not yet
                     if viewModel.showsNotYet {
                         SectionCard(title: viewModel.notYetTitle, symbol: "hand.raised",
                                     detail: viewModel.notYetCountText, tone: .stop, rememberAs: "plan.notyet") {
@@ -90,7 +99,7 @@ struct PlanView: View {
                         }
                     }
 
-                    // 3 visits
+                    // 4 visits
                     if viewModel.showsVisits {
                         SectionCard(title: viewModel.visitsTitle, symbol: "stethoscope",
                                     detail: viewModel.visitsCountText, rememberAs: "plan.visits") {
@@ -98,7 +107,7 @@ struct PlanView: View {
                         }
                     }
 
-                    // 4 to do
+                    // 5 to do
                     if viewModel.showsTasks {
                         SectionCard(title: viewModel.tasksTitle, symbol: "checklist",
                                     detail: viewModel.tasksCountText, rememberAs: "plan.tasks") {
@@ -110,7 +119,7 @@ struct PlanView: View {
                         }
                     }
 
-                    // 5 OK to do
+                    // 6 OK to do
                     if viewModel.showsOk {
                         SectionCard(title: viewModel.okTitle, symbol: "checkmark.circle",
                                     detail: viewModel.okCountText, tone: .good, rememberAs: "plan.ok") {
@@ -118,7 +127,7 @@ struct PlanView: View {
                         }
                     }
 
-                    // 6 coming up
+                    // 7 coming up
                     if viewModel.showsComingUp {
                         SectionCard(title: viewModel.comingUpTitle, symbol: "calendar",
                                     detail: viewModel.comingUpCountText, rememberAs: "plan.comingup") {

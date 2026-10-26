@@ -8,16 +8,65 @@
 import SwiftUI
 import UIKit
 
+// MARK: - Themes
+
+// the look picked in settings colours read it every time they draw
+nonisolated enum AppTheme: String, CaseIterable, Identifiable {
+    case remedy     // mint and pink from the app icon follows the phone
+    case light      // plain and bright always light
+    case dark       // deep green black always dark
+    case sunrise    // warm coral and peach follows the phone
+
+    static let storageKey = "appTheme"
+
+    static var current: AppTheme {
+        AppTheme(rawValue: UserDefaults.standard.string(forKey: storageKey) ?? "") ?? .remedy
+    }
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .remedy: return "Remedy"
+        case .light: return "Light"
+        case .dark: return "Dark"
+        case .sunrise: return "Sunrise"
+        }
+    }
+
+    // nil follows the phone
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .light: return .light
+        case .dark: return .dark
+        case .remedy, .sunrise: return nil
+        }
+    }
+
+    // the two colours on the picker swatch
+    var swatch: [Color] {
+        switch self {
+        case .remedy: return [Color(red: 0.48, green: 0.84, blue: 0.75), Color(red: 0.99, green: 0.76, blue: 0.84)]
+        case .light: return [Color(red: 0.08, green: 0.50, blue: 0.41), Color(white: 0.95)]
+        case .dark: return [Color(red: 0.16, green: 0.62, blue: 0.51), Color(red: 0.04, green: 0.08, blue: 0.07)]
+        case .sunrise: return [Color(red: 0.85, green: 0.39, blue: 0.23), Color(red: 1.0, green: 0.90, blue: 0.80)]
+        }
+    }
+}
+
 // MARK: - Colours
 
 extension Color {
 
-    // brand mint from the logo - darker than the logo so white text stays readable
+    // brand colour - darker than the logo so white text stays readable
     static let remedyTeal = Color(UIColor { (traits: UITraitCollection) -> UIColor in
-        if traits.userInterfaceStyle == .dark {
-            return UIColor(red: 0.16, green: 0.62, blue: 0.51, alpha: 1)   // #2A9D82
+        let dark = traits.userInterfaceStyle == .dark
+        if AppTheme.current == .sunrise {
+            return dark ? UIColor(red: 0.94, green: 0.54, blue: 0.36, alpha: 1)     // #F08A5D
+                        : UIColor(red: 0.80, green: 0.36, blue: 0.20, alpha: 1)     // #CC5C33
         }
-        return UIColor(red: 0.08, green: 0.50, blue: 0.41, alpha: 1)       // #158069
+        return dark ? UIColor(red: 0.16, green: 0.62, blue: 0.51, alpha: 1)         // #2A9D82
+                    : UIColor(red: 0.08, green: 0.50, blue: 0.41, alpha: 1)         // #158069
     })
 
     // logo mint and pink for brand touches not text
@@ -29,15 +78,29 @@ extension Color {
         return UIColor(red: 0.99, green: 0.76, blue: 0.84, alpha: 1)       // #FCC3D5
     })
 
-    // page behind the cards - a pink wash in light mode
+    // page behind the cards
     static let screenBackground = Color(UIColor { (traits: UITraitCollection) -> UIColor in
-        if traits.userInterfaceStyle == .dark {
-            return UIColor.systemGroupedBackground
+        let dark = traits.userInterfaceStyle == .dark
+        switch AppTheme.current {
+        case .remedy:
+            return dark ? .systemGroupedBackground : UIColor(red: 1.0, green: 0.95, blue: 0.97, alpha: 1)    // #FFF2F7
+        case .light:
+            return .systemGroupedBackground
+        case .dark:
+            return UIColor(red: 0.03, green: 0.07, blue: 0.06, alpha: 1)                                   // #08120F
+        case .sunrise:
+            return dark ? UIColor(red: 0.10, green: 0.07, blue: 0.05, alpha: 1)                            // #1A120D
+                        : UIColor(red: 1.0, green: 0.96, blue: 0.92, alpha: 1)                             // #FFF5EB
         }
-        return UIColor(red: 1.0, green: 0.95, blue: 0.97, alpha: 1)        // #FFF2F7
     })
-    // white card
-    static let cardBackground = Color(UIColor.secondarySystemGroupedBackground)
+
+    // card on top of the page
+    static let cardBackground = Color(UIColor { (traits: UITraitCollection) -> UIColor in
+        if AppTheme.current == .dark {
+            return UIColor(red: 0.08, green: 0.14, blue: 0.12, alpha: 1)                                   // #14231F
+        }
+        return .secondarySystemGroupedBackground
+    })
     // faint fill for tiles inside a card
     static let tileBackground = Color(UIColor.tertiarySystemFill)
     // grey for empty circles future days and chevrons

@@ -35,7 +35,7 @@ struct GeminiPlanReader: PlanReader {
         let clean = pages.map { Redactor.redact($0).text }
 
         let json = try await GeminiClient.generateJSON(
-            instructions: AIPrompt.instructions,
+            instructions: AIPrompt.instructions(for: paper),
             prompt: AIPrompt.prompt(paper: paper, pages: Array(clean.enumerated())),
             schema: GeminiSchema.plan,
             apiKey: key)

@@ -51,7 +51,7 @@ struct WelcomeView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
                 .controlSize(.large)
 
                 Label(viewModel.welcomePrivacy, systemImage: "lock.shield")
@@ -102,6 +102,22 @@ struct ChoosePaperView: View {
                         .accessibilityAddTraits(viewModel.paper == option.id ? .isSelected : [])
                     }
                 }
+
+                // names typed here are always hidden on the phone
+                SectionCard(title: viewModel.namesTitle, symbol: "eye.slash",
+                            collapsible: false, rememberAs: "scan.names") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        TextField(viewModel.namesPrompt, text: $viewModel.namesToHide)
+                            .textContentType(.name)
+                            .autocorrectionDisabled()
+                            .font(.body)
+                            .padding(.vertical, 8)
+                        Text(viewModel.namesFooter)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 6)
+                }
             }
             .padding(.horizontal, Spacing.screenEdge)
             .padding(.top, 8)
@@ -118,14 +134,14 @@ struct ChoosePaperView: View {
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.glassProminent)
                 }
 
                 PhotosPicker(selection: $viewModel.photoItems, maxSelectionCount: 10, matching: .images) {
                     Label(viewModel.photosButton, systemImage: "photo.on.rectangle")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.glass)
 
                 Button {
                     isChoosingPDF = true
@@ -133,7 +149,7 @@ struct ChoosePaperView: View {
                     Label(viewModel.pdfButton, systemImage: "doc.richtext")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.glass)
 
                 if viewModel.showsEpicButton {
                     Button {
@@ -147,7 +163,7 @@ struct ChoosePaperView: View {
                                 .frame(maxWidth: .infinity)
                         }
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.glass)
                     .disabled(viewModel.isImportingFromEpic)
                 }
 
@@ -163,7 +179,7 @@ struct ChoosePaperView: View {
                                 .frame(maxWidth: .infinity)
                         }
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.glass)
                     .disabled(viewModel.isImportingFromHealth)
                 }
 
@@ -175,7 +191,15 @@ struct ChoosePaperView: View {
                         Label(viewModel.sampleButton, systemImage: "doc.text")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.glass)
+
+                    Button {
+                        viewModel.useSampleMyChart()
+                    } label: {
+                        Label(viewModel.sampleMyChartButton, systemImage: "building.columns")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.glass)
                 }
             }
             .controlSize(.large)

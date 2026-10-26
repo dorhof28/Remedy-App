@@ -51,6 +51,21 @@ struct VisitRow: Identifiable {
     var spokenLabel: String { "\(title), \(weekday) \(month) \(dayNumber), \(detail), \(relative)" }
 }
 
+// one key day on the journey overview
+struct JourneyStopRow: Identifiable {
+    let stop: JourneyStop
+    let symbol: String
+    let tone: Tone
+    let labelText: String       // "3 days before surgery"
+    let stateText: String       // "Today" "Next" "Done" "in 5 days"
+
+    var id: Int { stop.day }
+    var isFaded: Bool { stop.state == .done }
+    var spokenLabel: String {
+        "\(stop.weekday) \(stop.month) \(stop.dayNumber), \(labelText). \(stateText). \(stop.titles.joined(separator: ". "))"
+    }
+}
+
 // MARK: - ViewModel
 
 struct PlanViewModel {
@@ -120,6 +135,27 @@ struct PlanViewModel {
 
     // "Back to today" only shows when another day is picked
     func showsTodayButton(picked: Int) -> Bool { picked != day }
+
+    // MARK: - Journey overview
+
+    let overviewTitle = "The whole journey"
+
+    // every key day with its icon and where it sits
+    var overviewRows: [JourneyStopRow] {
+        guard let plan else { return [] }
+        return Journey.stops(plan: plan, today: day).map { stop in
+            let state: String
+            switch stop.state {
+            case .done: state = "Done"
+            case .today: state = "Today"
+            case .next: state = "Next"
+            case .later: state = DayMath.relative(daysFromToday: stop.day - day)
+            }
+            return JourneyStopRow(stop: stop, symbol: stop.kind?.symbol ?? "smallcircle.filled.circle",
+                                  tone: stop.kind?.tone ?? .info, labelText: upperFirst(stop.label), stateText: state)
+        }
+    }
+    var overviewCountText: String { "\(overviewRows.count) key days" }
 
     // MARK: - Rules
 

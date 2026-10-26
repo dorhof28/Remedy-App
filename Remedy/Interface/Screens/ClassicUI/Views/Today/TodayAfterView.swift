@@ -127,14 +127,14 @@ struct NowDoseCardView: View {
                                 .font(.headline)
                                 .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.glassProminent)
 
                         Button(action: onSkip) {
                             Text(skipTitle)
                                 .font(.headline)
                                 .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.glass)
                         .frame(maxWidth: 120)
                     }
                     .controlSize(.large)
@@ -198,7 +198,7 @@ struct AsNeededCard: View {
                         .accessibilityLabel(row.spokenLabel)
                         Spacer(minLength: 0)
                         Button(row.buttonTitle) { onTake(row) }
-                            .buttonStyle(.bordered)
+                            .buttonStyle(.glass)
                             .disabled(!row.canTake)
                     }
                 }

@@ -96,7 +96,7 @@ struct BeforeTopCardView: View {
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.glassProminent)
                     .controlSize(.large)
                     .tint(card.tone.color)
                     .transition(.opacity)

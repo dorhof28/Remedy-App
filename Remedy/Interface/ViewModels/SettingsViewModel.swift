@@ -31,8 +31,8 @@ struct SettingsViewModel {
     let aboutTitle = "About"
     let versionLabel = "Version"
     let disclaimer = "Remedy helps you follow the papers your care team gave you. It is not medical advice. Always follow your care team, and call 911 in an emergency."
-    let creditsLabel = "Made with"
-    let creditsText = "SwiftUI, SwiftData, VisionKit, Foundation Models"
+    let creditsLabel = "Made by"
+    let creditsText = "Dorron Hoffman and Nikhil Shah"
     let demoTitle = "Demo"
 
     var hasPlan: Bool { plan != nil }
@@ -73,7 +73,11 @@ struct SettingsViewModel {
     let geminiKeyPrompt = "Gemini API key"
     let saveKeyTitle = "Save key"
     let removeKeyTitle = "Remove Gemini key"
-    let aiFooter = "Only the cleaned text, with your name and numbers removed, is ever sent. Gemini is the backup when Apple\u{2019}s cloud AI isn\u{2019}t available. Google\u{2019}s free tier may use what it gets to improve its AI, so only use a free key with sample papers."
+    let picturesToggle = "Send blacked out photos for better reading"
+    let connectionsTitle = "Check MyChart and Health"
+    let themeTitle = "Theme"
+    let themeFooter = "The new theme shows when you close Settings."
+    let aiFooter = "Only the cleaned text and blacked out photos, with your name and numbers removed, are ever sent. Gemini is the backup when Apple\u{2019}s cloud AI isn\u{2019}t available. Google\u{2019}s free tier may use what it gets to improve its AI, so only use a free key with sample papers."
 
     // "Apple's cloud AI" "Google Gemini" "Apple AI on this phone"
     var aiStatusText: String {
