@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+// counts goal progress
 enum GoalActions {
 
     // adds event

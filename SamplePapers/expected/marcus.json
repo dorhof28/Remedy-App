@@ -1,0 +1,210 @@
+{
+  "patient": "Marcus Bell",
+  "procedure": "Right knee replacement",
+  "surgeryDate": "2026-12-14",
+  "papers": [
+    {
+      "file": "A1-heart-letter",
+      "source": "specialist",
+      "field": "heart",
+      "doctor": "Dr. Priya Raman",
+      "printedDate": "2026-11-20"
+    },
+    {
+      "file": "A2-surgeon-preop",
+      "source": "surgeryTeam",
+      "field": null,
+      "doctor": "Dr. Alan Whitfield",
+      "printedDate": "2026-12-01"
+    },
+    {
+      "file": "A3-preadmission",
+      "source": "surgeryTeam",
+      "field": null,
+      "doctor": "Northfield pre-admission testing",
+      "printedDate": "2026-12-04"
+    }
+  ],
+  "medicines": [
+    {
+      "paper": "A1",
+      "name": "Aspirin",
+      "otherNames": [
+        "baby aspirin"
+      ],
+      "action": "okToTake",
+      "startDay": null,
+      "endDay": null,
+      "strength": "81 mg",
+      "quote": "Continue aspirin 81 mg once daily. Do not stop it before surgery."
+    },
+    {
+      "paper": "A1",
+      "name": "Metoprolol succinate",
+      "otherNames": [
+        "metoprolol"
+      ],
+      "action": "okToTake",
+      "startDay": null,
+      "endDay": null,
+      "strength": "25 mg",
+      "quote": "Continue metoprolol succinate 25 mg every morning, including the morning of surgery. Take it with a sip of water."
+    },
+    {
+      "paper": "A1",
+      "name": "Atorvastatin",
+      "otherNames": [
+        "lipitor"
+      ],
+      "action": "okToTake",
+      "startDay": null,
+      "endDay": null,
+      "strength": "40 mg",
+      "quote": "Continue atorvastatin 40 mg at bedtime."
+    },
+    {
+      "paper": "A2",
+      "name": "Aspirin",
+      "otherNames": [
+        "baby aspirin"
+      ],
+      "action": "stop",
+      "startDay": -7,
+      "endDay": null,
+      "strength": "",
+      "quote": "Aspirin"
+    },
+    {
+      "paper": "A2",
+      "name": "Ibuprofen",
+      "otherNames": [
+        "advil",
+        "motrin"
+      ],
+      "action": "stop",
+      "startDay": -7,
+      "endDay": null,
+      "strength": "",
+      "quote": "Ibuprofen (Advil, Motrin) and naproxen (Aleve)"
+    },
+    {
+      "paper": "A2",
+      "name": "Naproxen",
+      "otherNames": [
+        "aleve"
+      ],
+      "action": "stop",
+      "startDay": -7,
+      "endDay": null,
+      "strength": "",
+      "quote": "Ibuprofen (Advil, Motrin) and naproxen (Aleve)"
+    },
+    {
+      "paper": "A2",
+      "name": "Fish oil",
+      "otherNames": [
+        "omega-3"
+      ],
+      "action": "stop",
+      "startDay": -7,
+      "endDay": null,
+      "strength": "",
+      "quote": "Fish oil"
+    },
+    {
+      "paper": "A2",
+      "name": "Lisinopril",
+      "otherNames": [],
+      "action": "stop",
+      "startDay": 0,
+      "endDay": 0,
+      "strength": "10 mg",
+      "quote": "Do not take lisinopril 10 mg the morning of surgery."
+    },
+    {
+      "paper": "A3",
+      "name": "Ibuprofen",
+      "otherNames": [
+        "advil",
+        "motrin"
+      ],
+      "action": "stop",
+      "startDay": -4,
+      "endDay": null,
+      "strength": "",
+      "quote": "Stop ibuprofen (Advil, Motrin) and naproxen (Aleve) 4 days before surgery."
+    },
+    {
+      "paper": "A3",
+      "name": "Naproxen",
+      "otherNames": [
+        "aleve"
+      ],
+      "action": "stop",
+      "startDay": -4,
+      "endDay": null,
+      "strength": "",
+      "quote": "Stop ibuprofen (Advil, Motrin) and naproxen (Aleve) 4 days before surgery."
+    },
+    {
+      "paper": "A3",
+      "name": "Fish oil",
+      "otherNames": [
+        "omega-3"
+      ],
+      "action": "stop",
+      "startDay": -7,
+      "endDay": null,
+      "strength": "",
+      "quote": "Stop fish oil 7 days before surgery."
+    },
+    {
+      "paper": "A3",
+      "name": "Metoprolol succinate",
+      "otherNames": [
+        "metoprolol"
+      ],
+      "action": "okToTake",
+      "startDay": 0,
+      "endDay": 0,
+      "strength": "",
+      "quote": "Take metoprolol the morning of surgery with a sip of water."
+    }
+  ],
+  "expectedChecks": [
+    {
+      "medicine": "Aspirin",
+      "color": "blue",
+      "why": "surgery team paper covers it",
+      "winner": "A2",
+      "stopFromDay": -7
+    },
+    {
+      "medicine": "Ibuprofen",
+      "color": "blue",
+      "why": "same team, newer paper wins",
+      "winner": "A3",
+      "stopFromDay": -4
+    },
+    {
+      "medicine": "Naproxen",
+      "color": "blue",
+      "why": "same team, newer paper wins",
+      "winner": "A3",
+      "stopFromDay": -4
+    },
+    {
+      "medicine": "Fish oil",
+      "color": "agree"
+    },
+    {
+      "medicine": "Metoprolol",
+      "color": "agree"
+    },
+    {
+      "medicine": "Atorvastatin",
+      "color": "blue",
+      "why": "surgery papers do not mention it"
+    }
+  ]
+}

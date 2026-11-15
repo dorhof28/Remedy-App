@@ -2,226 +2,143 @@
 //  WelcomeView.swift
 //  Remedy
 //
-//  first screen and choosing papers
+//  classic look of the first screen and the page where the papers come from
 //
 
-import AuthenticationServices
 import SwiftUI
-import PhotosUI
-import UniformTypeIdentifiers     // .pdf for the Files picker
 
+// the first screen: get started, demo mode or restore
 struct WelcomeView: View {
-    let viewModel: ScanFlowViewModel
+    @Bindable var viewModel: ScanFlowViewModel
+
+    @Environment(\.dynamicTypeSize) private var typeSize
+    // UI only is the restore sheet or demo mode open
+    @State private var isRestoring = false
+    @State private var isShowingDemo = false
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 28) {
-                TopCard(title: viewModel.appName, subtitle: viewModel.welcomeTitle) {
-                    // the app icon
+            VStack(spacing: 24) {
+                VStack(spacing: 8) {
+                    // the app icon, decoration only
                     Image("Logo")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 96, height: 96)
-                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
+                        .padding(.bottom, 16)
                         .accessibilityHidden(true)
+                    Text(viewModel.appName)
+                        .font(.largeTitle.bold())
+                        .foregroundStyle(Color.ink)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(viewModel.welcomeDetail)
+                        .font(.title3)
+                        .foregroundStyle(Color.ink2)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(.top, 32)
-
-                Text(viewModel.welcomeDetail)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+                .padding(.top, 24)
 
                 VStack(spacing: 0) {
                     ForEach(viewModel.features) { feature in
-                        IconRow(symbol: feature.symbol, tone: .info, title: feature.title,
-                                subtitle: feature.detail, iconSize: 40)
+                        if feature.id != viewModel.features.first?.id { Divider().padding(.leading, 60) }
+                        ListRow(symbol: feature.symbol, title: feature.title, subtitle: feature.detail)
+                            .padding(.horizontal, Spacing.insideCard)
+                            .padding(.vertical, 10)
+                            .accessibilityElement(children: .combine)
                     }
                 }
+                .background(RoundedRectangle(cornerRadius: Radius.card, style: .continuous).fill(Color.cardBackground))
+
+                DisclaimerBox(text: viewModel.disclaimer)
+
+                if typeSize.isAccessibilitySize { bar }
             }
             .padding(.horizontal, Spacing.screenEdge)
-            .padding(.bottom, Spacing.scrollBottom)
+            .padding(.bottom, 24)
         }
+        .scrollBounceBehavior(.basedOnSize)
+        .background(Color.screenBackground)
         .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 10) {
-                Button {
-                    viewModel.begin()
-                } label: {
-                    Text(viewModel.welcomeButton)
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.glassProminent)
-                .controlSize(.large)
-
-                Label(viewModel.welcomePrivacy, systemImage: "lock.shield")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(Spacing.screenEdge)
-            .background(.bar)
+            if !typeSize.isAccessibilitySize { bar }
         }
+        .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $viewModel.showsSources) { PaperSourceSheet(viewModel: viewModel) }
+        .sheet(isPresented: $isRestoring) {
+            RestoreBackupView(viewModel: SettingsViewModel(plan: nil, now: AppClock.now()))
+        }
+        // with no plan yet there is no Settings, so demo mode opens from here too
+        .sheet(isPresented: $isShowingDemo) {
+            DemoModeView()
+        }
+        .paperIntake(viewModel, request: $viewModel.intakeRequest)
+        .task {
+            switch await viewModel.openDemoScreen() {
+            case "restore": isRestoring = true
+            case "demo": isShowingDemo = true
+            default: break
+            }
+        }
+    }
+
+    // one primary button, then demo and restore side by side
+    private var bar: some View {
+        VStack(spacing: 12) {
+            PrimaryButton(title: viewModel.welcomeButton) { viewModel.begin() }
+                .accessibilityIdentifier("welcome-add")
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 12) { secondary }
+                VStack(spacing: 12) { secondary }
+            }
+        }
+        .padding(.horizontal, Spacing.screenEdge)
+        .padding(.bottom, 8)
+    }
+
+    @ViewBuilder
+    private var secondary: some View {
+        // loading a case turns demo mode on, just looking does not
+        SecondaryButton(title: viewModel.demoButton) { isShowingDemo = true }
+            .accessibilityIdentifier("welcome-demo")
+        SecondaryButton(title: viewModel.restoreButton) { isRestoring = true }
     }
 }
 
-// MARK: - Which papers? + how to scan
+// MARK: - Where are the papers
 
-// pick papers and how to add them
-struct ChoosePaperView: View {
+// first pick, where the papers come from, one tap goes on
+struct AddPapersView: View {
     @Bindable var viewModel: ScanFlowViewModel
 
-    // UI only is the camera open
-    @State private var isShowingCamera = false
-    // UI only is the Files picker open
-    @State private var isChoosingPDF = false
-    // apple's secure sign-in sheet for MyChart
-    @Environment(\.webAuthenticationSession) private var webAuthenticationSession
-
     var body: some View {
-        ScrollView {
+        FitOrScroll {
             VStack(spacing: Spacing.betweenCards) {
                 if let error = viewModel.errorText {
                     ToneBox(eyebrow: "Try again", title: error, tone: .caution)
-                }
-
-                SectionCard(title: viewModel.choosePaperTitle, symbol: "doc.on.doc",
-                            collapsible: false, rememberAs: "scan.paper") {
-                    DividedList(items: viewModel.paperOptions, inset: 52) { option in
+                    if viewModel.showsTryOnPhone {
                         Button {
-                            withAnimation { viewModel.choose(option.id) }
+                            Task { await viewModel.tryOnPhone() }
                         } label: {
-                            HStack(spacing: 12) {
-                                IconRow(symbol: option.symbol, title: option.title, subtitle: option.detail, iconSize: 40)
-                                Image(systemName: viewModel.paper == option.id ? "checkmark.circle.fill" : "circle")
-                                    .font(.title2)
-                                    .foregroundStyle(viewModel.paper == option.id ? Color.remedyTeal : Color.inactive)
-                                    .contentTransition(.symbolEffect(.replace))
-                            }
+                            Text(viewModel.tryOnPhoneButton)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(viewModel.paper == option.id ? .isSelected : [])
+                        .buttonStyle(RemedyButtonStyle(kind: .secondary))
                     }
                 }
-
-                // names typed here are always hidden on the phone
-                SectionCard(title: viewModel.namesTitle, symbol: "eye.slash",
-                            collapsible: false, rememberAs: "scan.names") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        TextField(viewModel.namesPrompt, text: $viewModel.namesToHide)
-                            .textContentType(.name)
-                            .autocorrectionDisabled()
-                            .font(.body)
-                            .padding(.vertical, 8)
-                        Text(viewModel.namesFooter)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.vertical, 6)
-                }
+                PaperSourcePicker(viewModel: viewModel)
             }
             .padding(.horizontal, Spacing.screenEdge)
             .padding(.top, 8)
         }
-        .navigationTitle(viewModel.choosePaperTitle)
+        .navigationTitle(viewModel.addPapersTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 10) {
-                if viewModel.canUseCamera {
-                    Button {
-                        isShowingCamera = true
-                    } label: {
-                        Label(viewModel.cameraButton, systemImage: "camera.fill")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.glassProminent)
-                }
-
-                PhotosPicker(selection: $viewModel.photoItems, maxSelectionCount: 10, matching: .images) {
-                    Label(viewModel.photosButton, systemImage: "photo.on.rectangle")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.glass)
-
-                Button {
-                    isChoosingPDF = true
-                } label: {
-                    Label(viewModel.pdfButton, systemImage: "doc.richtext")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.glass)
-
-                if viewModel.showsEpicButton {
-                    Button {
-                        Task { await viewModel.importFromEpic(using: webAuthenticationSession) }
-                    } label: {
-                        if viewModel.isImportingFromEpic {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            Label(viewModel.epicButton, systemImage: "building.columns")
-                                .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .buttonStyle(.glass)
-                    .disabled(viewModel.isImportingFromEpic)
-                }
-
-                if viewModel.showsHealthButton {
-                    Button {
-                        Task { await viewModel.importFromHealth() }
-                    } label: {
-                        if viewModel.isImportingFromHealth {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            Label(viewModel.healthButton, systemImage: "heart.text.square")
-                                .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .buttonStyle(.glass)
-                    .disabled(viewModel.isImportingFromHealth)
-                }
-
-                // DEMO ONLY
-                if viewModel.showsSampleButton {
-                    Button {
-                        Task { await viewModel.useSamplePapers() }
-                    } label: {
-                        Label(viewModel.sampleButton, systemImage: "doc.text")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.glass)
-
-                    Button {
-                        viewModel.useSampleMyChart()
-                    } label: {
-                        Label(viewModel.sampleMyChartButton, systemImage: "building.columns")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.glass)
+        .toolbar {
+            if !viewModel.isAddingPapers || viewModel.asksPaperKind {
+                ToolbarItem(placement: .navigation) {
+                    Button(viewModel.backButton) { viewModel.goBack() }
                 }
             }
-            .controlSize(.large)
-            .padding(Spacing.screenEdge)
-            .background(.bar)
         }
-        .fileImporter(isPresented: $isChoosingPDF, allowedContentTypes: [.pdf]) { result in
-            if case .success(let url) = result {
-                Task { await viewModel.processPDF(at: url) }
-            }
-        }
-        .onChange(of: viewModel.photoItems.count) { _, count in
-            if count > 0 { Task { await viewModel.processPhotos() } }
-        }
-        .fullScreenCover(isPresented: $isShowingCamera) {
-            DocumentScanner { images in
-                isShowingCamera = false
-                Task { await viewModel.process(images: images) }
-            } onCancel: {
-                isShowingCamera = false
-            }
-            .ignoresSafeArea()
-        }
+        .paperIntake(viewModel, request: $viewModel.intakeRequest)
     }
 }

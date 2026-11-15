@@ -1,0 +1,110 @@
+[
+  {
+    "resourceType": "MedicationRequest",
+    "status": "active",
+    "medicationReference": {
+      "display": "apixaban (ELIQUIS) 5 MG tablet"
+    },
+    "dosageInstruction": [
+      {
+        "text": "Take 1 tablet by mouth twice a day",
+        "timing": {
+          "repeat": {
+            "frequency": 2,
+            "period": 1,
+            "periodUnit": "d"
+          }
+        },
+        "doseAndRate": [
+          {
+            "doseQuantity": {
+              "value": 1,
+              "unit": "tablet"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "resourceType": "MedicationRequest",
+    "status": "active",
+    "medicationReference": {
+      "display": "metformin 500 MG tablet"
+    },
+    "dosageInstruction": [
+      {
+        "text": "Take 1 tablet by mouth twice a day with meals",
+        "timing": {
+          "repeat": {
+            "frequency": 2,
+            "period": 1,
+            "periodUnit": "d"
+          }
+        },
+        "doseAndRate": [
+          {
+            "doseQuantity": {
+              "value": 1,
+              "unit": "tablet"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "resourceType": "MedicationRequest",
+    "status": "active",
+    "medicationReference": {
+      "display": "atorvastatin 20 MG tablet"
+    },
+    "dosageInstruction": [
+      {
+        "text": "Take 1 tablet by mouth at bedtime",
+        "timing": {
+          "repeat": {
+            "frequency": 1,
+            "period": 1,
+            "periodUnit": "d"
+          }
+        },
+        "doseAndRate": [
+          {
+            "doseQuantity": {
+              "value": 1,
+              "unit": "tablet"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "resourceType": "MedicationRequest",
+    "status": "active",
+    "medicationReference": {
+      "display": "omeprazole 20 MG capsule"
+    },
+    "dosageInstruction": [
+      {
+        "text": "Take 1 capsule by mouth once a day before breakfast",
+        "timing": {
+          "repeat": {
+            "frequency": 1,
+            "period": 1,
+            "periodUnit": "d"
+          }
+        },
+        "doseAndRate": [
+          {
+            "doseQuantity": {
+              "value": 1,
+              "unit": "capsule"
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -53,6 +53,7 @@ nonisolated struct FHIRMedicationRequest: Decodable {
     // the first dosage whichever field it came in
     var firstDosage: Dosage? { (dosageInstruction ?? dosage)?.first }
 
+    // how to take it, as the hospital wrote it
     struct Dosage: Decodable {
         let text: String?                   // "Take 1 tablet by mouth every 8 hours"
         let patientInstruction: String?
@@ -63,6 +64,7 @@ nonisolated struct FHIRMedicationRequest: Decodable {
     struct Timing: Decodable {
         let `repeat`: Repeat?
     }
+    // how often: frequency times per period
     struct Repeat: Decodable {
         let frequency: Int?                 // 3 ...
         let period: Double?                 // ... per 1 ...
@@ -94,5 +96,29 @@ nonisolated struct FHIRAppointment: Decodable {
 
     struct Participant: Decodable {
         let actor: FHIRReference?
+    }
+}
+
+// MARK: - DocumentReference (a visit note or paper)
+
+// a clinical note, its words are in an attachment
+nonisolated struct FHIRDocumentReference: Decodable {
+    let resourceType: String?
+    let id: String?
+    let status: String?                     // current, superseded, entered-in-error
+    let date: String?                       // when it was written
+    let description: String?
+    let type: FHIRConcept?                  // "Discharge Instructions", "Progress Note"
+    let content: [Content]?
+
+    struct Content: Decodable {
+        let attachment: Attachment?
+    }
+    // the note's file, inline as base64 or as a link
+    struct Attachment: Decodable {
+        let contentType: String?            // text/plain, text/html, text/rtf, application/pdf
+        let url: String?                    // usually "Binary/abc", relative to the fhir base
+        let data: String?                   // base64 when the words are inline
+        let title: String?
     }
 }

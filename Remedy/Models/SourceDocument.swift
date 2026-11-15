@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+// one scanned page and its text, so the patient can see the paper again
 @Model
 final class SourceDocument {
 
@@ -22,6 +23,7 @@ final class SourceDocument {
     var scannedAt: Date = Date()
 
     // which plan its from
+    var paperID: UUID?      // the Paper record it came from
     var plan: CarePlan?
 
     init(pageNumber: Int, paper: PaperKind, redactedText: String) {

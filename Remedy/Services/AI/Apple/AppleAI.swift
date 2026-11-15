@@ -8,6 +8,7 @@
 import Foundation
 import FoundationModels
 
+// which apple model is ready on this phone
 enum AppleAI {
 
     // off until Apple approves our Private Cloud Compute entitlement

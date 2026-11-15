@@ -15,6 +15,7 @@ struct SMARTToken {
     let patientID: String
 }
 
+// smart on fhir sign in: find the endpoints, sign in on the web, swap the code for a token
 enum SMARTAuth {
 
     // full sign in returns a token
@@ -61,6 +62,7 @@ enum SMARTAuth {
 
     // MARK: - Steps
 
+    // where to sign in and where to swap the code for a token
     private struct Endpoints {
         let authorize: URL
         let token: URL
@@ -68,6 +70,7 @@ enum SMARTAuth {
 
     // 1 asks the hospital for its login and token addresses
     private static func discover() async throws -> Endpoints {
+        // the server's smart configuration
         struct Configuration: Decodable {
             let authorization_endpoint: URL
             let token_endpoint: URL
@@ -84,6 +87,7 @@ enum SMARTAuth {
 
     // 4 swaps the one-time code for a token
     private static func exchange(code: String, verifier: String, at tokenURL: URL) async throws -> SMARTToken {
+        // the token and the patient it is for
         struct TokenResponse: Decodable {
             let access_token: String
             let patient: String?

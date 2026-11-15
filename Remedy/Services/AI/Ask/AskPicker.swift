@@ -19,6 +19,7 @@ nonisolated struct AIAskPick {
     var factNumber: Int
 }
 
+// the phone ai picks the paper line that answers a question, it never writes its own answer
 enum AskPicker {
 
     static let instructions = """
@@ -44,7 +45,7 @@ enum AskPicker {
         do {
             let session = LanguageModelSession(model: SystemLanguageModel.default, instructions: instructions)
             let response = try await session.respond(to: prompt, generating: AIAskPick.self,
-                                                     options: GenerationOptions(sampling: .greedy))
+                                                     options: GenerationOptions(samplingMode: .greedy))
             return response.content
         } catch {
             PlanReaders.log.error("Ask picker failed: \(error.localizedDescription, privacy: .public)")

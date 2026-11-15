@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 
+// fixes clear camera misreads with the spell checker
 enum TypoFixer {
 
     // letters the camera mixes up most
@@ -68,6 +69,7 @@ enum TypoFixer {
 
     private static func digitsFree(_ word: String) -> Bool { !word.contains(where: \.isNumber) }
 
+    // keeps the original word's capitals
     private static func matchCase(_ word: String, like original: String) -> String {
         if original == original.uppercased() { return word.uppercased() }
         if original.first?.isUppercase == true { return word.prefix(1).uppercased() + word.dropFirst() }

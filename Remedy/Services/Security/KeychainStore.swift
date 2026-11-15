@@ -8,6 +8,7 @@
 import Foundation
 import Security
 
+// saves names and keys in the keychain, this phone only
 enum KeychainStore {
 
     private static let service = "com.dorronhoffman.Remedy"

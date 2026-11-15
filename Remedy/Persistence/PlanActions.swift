@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+// changes to the plan itself: surgery date, hospital, times
 enum PlanActions {
 
     

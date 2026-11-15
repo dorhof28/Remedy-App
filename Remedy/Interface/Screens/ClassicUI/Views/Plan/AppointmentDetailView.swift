@@ -2,116 +2,94 @@
 //  AppointmentDetailView.swift
 //  Remedy
 //
-//  classic one visit
+//  classic one visit (screen 40): when, call, directions and calendar, where, what to bring, the paper's words
 //
 
 import SwiftUI
 import SwiftData
 
+// classic visit page
 struct AppointmentDetailView: View {
     let appointment: Appointment
 
-    @Environment(\.modelContext) private var context
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dismiss) private var dismiss
 
-    // UI only is Apple's "New Event" screen open
-    @State private var isAddingToCalendar = false
+    // UI only the edit screen
+    @State private var isEditing = false
+    // hides the visit while it is deleted
+    @State private var isRemoved = false
 
     var body: some View {
-        TimelineView(.everyMinute) { _ in
-            let viewModel = AppointmentDetailViewModel(appointment: appointment, now: AppClock.now())
-            ScrollView {
-                VStack(spacing: Spacing.betweenCards) {
-                    let parts = viewModel.dateParts
-                    TopCard(title: viewModel.title, subtitle: viewModel.subtitle, caption: viewModel.relativeText) {
-                        DateTile(month: parts.month, day: parts.day, weekday: parts.weekday, size: 84)
-                    }
-
-                    buttons(viewModel)
-
-                    if viewModel.showsDetails {
-                        SectionCard(title: viewModel.detailsTitle, symbol: "info.circle", rememberAs: "visit.details") {
-                            DividedList(items: viewModel.detailRows, inset: 42) { row in
-                                IconRow(symbol: row.symbol, title: row.title, subtitle: row.subtitle)
-                            }
-                        }
-                    }
-
-                    if viewModel.showsWhy {
-                        SectionCard(title: viewModel.whyTitle, symbol: "questionmark.circle", rememberAs: "visit.why") {
-                            VStack(alignment: .leading, spacing: 14) {
-                                if viewModel.showsPurpose {
-                                    Text(viewModel.purpose)
-                                        .font(.subheadline)
-                                }
-                                PaperQuoteCard(quote: viewModel.quote, source: viewModel.quoteSource)
-                            }
-                            .padding(.vertical, Spacing.rowVertical)
-                        }
-                    }
-
-                    if viewModel.showsBring {
-                        SectionCard(title: viewModel.bringTitle, symbol: "bag", rememberAs: "visit.bring") {
-                            BulletList(items: viewModel.bringItems, symbol: "checkmark.circle")
-                        }
-                    }
-
-                    if viewModel.showsQuestions {
-                        SectionCard(title: viewModel.questionsTitle, symbol: "text.bubble",
-                                    startsExpanded: false, rememberAs: "visit.questions") {
-                            BulletList(items: viewModel.questions, symbol: "questionmark.circle")
-                            CardFootnote(text: viewModel.questionsFootnote)
-                        }
-                    }
-                }
-                .padding(.horizontal, Spacing.screenEdge)
-                .padding(.bottom, Spacing.scrollBottom)
+        if isRemoved {
+            RemedyBackground()
+        } else {
+            TimelineView(.everyMinute) { _ in
+                content(AppointmentDetailViewModel(appointment: appointment, now: AppClock.now()))
             }
-            .background(Color.screenBackground)
-            .navigationTitle(viewModel.title)
-            .navigationBarTitleDisplayMode(.inline)
         }
     }
 
-    // MARK: - Calendar, Call, Directions
-
-    private func buttons(_ viewModel: AppointmentDetailViewModel) -> some View {
-        VStack(spacing: 10) {
-            if viewModel.showsCalendarButton {
-                Button {
-                    isAddingToCalendar = true
-                } label: {
-                    Label(viewModel.calendarButtonTitle, systemImage: viewModel.calendarButtonSymbol)
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .contentTransition(.symbolEffect(.replace))
+    private func content(_ viewModel: AppointmentDetailViewModel) -> some View {
+        List {
+            Section {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(viewModel.title)
+                        .font(.largeTitle.bold())
+                        .foregroundStyle(Color.ink)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(viewModel.headerSubtitle)
+                        .font(.body)
+                        .foregroundStyle(Color.ink2)
                 }
-                .buttonStyle(.glassProminent)
-                .disabled(!viewModel.canAddToCalendar)
-                .sensoryFeedback(.success, trigger: viewModel.isInCalendar) { _, isIn in isIn }
-                .sheet(isPresented: $isAddingToCalendar) {
-                    CalendarEventSheet(event: viewModel.calendarEvent()) { added in
-                        if added { Motion.perform(reduceMotion) { viewModel.markAddedToCalendar(in: context) } }
-                        isAddingToCalendar = false
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityElement(children: .combine)
+                .plainListRow()
+                VisitActionTiles(appointment: appointment)
+                    .padding(.top, 12)
+                    .plainListRow()
+            }
+            if !viewModel.infoRows.isEmpty {
+                Section {
+                    ForEach(viewModel.infoRows) { row in
+                        ListRow(symbol: row.symbol, title: row.title, subtitle: row.subtitle)
+                            .accessibilityElement(children: .combine)
                     }
-                    .ignoresSafeArea()
                 }
             }
-
-            if viewModel.showsContactButtons {
-                HStack(spacing: 10) {
-                    CallButton(title: viewModel.callTitle, phoneURL: viewModel.phoneURL)
-                    if let mapsURL = viewModel.mapsURL {
-                        Link(destination: mapsURL) {
-                            Label(viewModel.directionsTitle, systemImage: "map.fill")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.glass)
-                    }
+            if viewModel.showsQuestions {
+                Section {
+                    ForEach(viewModel.questions, id: \.self) { ListRow(symbol: "questionmark.bubble", title: $0) }
+                } header: {
+                    ListSectionHeader(title: viewModel.questionsTitle)
+                } footer: {
+                    Text(viewModel.questionsFootnote).font(.footnote).foregroundStyle(Color.ink2)
+                }
+            }
+            if !viewModel.quoteText.isEmpty {
+                Section {
+                    PaperQuote(source: viewModel.quoteSource, quote: viewModel.quoteText, plain: viewModel.quotePlain)
+                        .plainListRow()
                 }
             }
         }
-        .controlSize(.large)
+        .remedyList()
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
+        .toolbar {
+            if appointment.plan != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(viewModel.editTitle) { isEditing = true }
+                }
+            }
+        }
+        .sheet(isPresented: $isEditing) {
+            if let plan = appointment.plan {
+                AppointmentEditView(appointment: appointment, plan: plan, now: AppClock.now()) {
+                    isRemoved = true
+                    dismiss()
+                }
+            }
+        }
     }
 }
 

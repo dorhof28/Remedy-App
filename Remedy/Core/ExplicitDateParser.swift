@@ -7,7 +7,8 @@
 
 import Foundation
 
-enum ExplicitDateParser {
+// reads written dates like November 20, 2026 or 11/20/26
+nonisolated enum ExplicitDateParser {
 
     private static let dateFormats = [
         "MMMM d, yyyy",

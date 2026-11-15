@@ -8,6 +8,7 @@
 import Foundation
 import HealthKit
 
+// steps and health records access
 enum HealthService {
 
     // the Settings switch "Show my steps on Today"
@@ -39,22 +40,4 @@ enum HealthService {
         try? await store.requestAuthorization(toShare: [], read: [HKQuantityType(.stepCount)])
     }
 
-    // steps since midnight or nil if there are none to show
-    static func stepsToday(now: Date) async -> Int? {
-        guard isAvailable else { return nil }
-        let type = HKQuantityType(.stepCount)
-        let midnight = Calendar.current.startOfDay(for: now)
-        let today = HKQuery.predicateForSamples(withStart: midnight, end: now)
-        let query = HKStatisticsQueryDescriptor(predicate: .quantitySample(type: type, predicate: today),
-                                                options: .cumulativeSum)
-        guard let sum = try? await query.result(for: store)?.sumQuantity() else { return nil }
-        let steps = Int(sum.doubleValue(for: .count()))
-        return steps > 0 ? steps : nil
-    }
-
-    // "2340 steps today " or nil
-    static func stepsTodayText(now: Date) async -> String? {
-        guard let steps = await stepsToday(now: now) else { return nil }
-        return "\(steps.formatted()) steps today (Apple Health)"
-    }
 }

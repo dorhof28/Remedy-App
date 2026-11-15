@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+// a one time to-do from the papers, due on a plan day or any time
 @Model
 final class CareTask {
 
@@ -23,6 +24,7 @@ final class CareTask {
     var paperRaw: String = PaperKind.beforeSurgery.rawValue
 
     // the plan it belongs to
+    var paperID: UUID?      // the Paper record it came from
     var plan: CarePlan?
 
     init(title: String, dueDay: Int?, paper: PaperKind, quote: String) {

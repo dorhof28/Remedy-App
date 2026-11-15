@@ -7,13 +7,15 @@
 
 import Foundation
 
+// sends the papers to gemini's rest api and returns its json
 enum GeminiClient {
 
-    // latest flash so it keeps working when google retires a model
-    static let model = "gemini-flash-latest"
+    // the model picked on Add a Key, gemini flash by default
+    static var model: String { ProviderModels.picked(.gemini) }
 
-    private static let endpoint = URL(string:
-        "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent")!
+    private static var endpoint: URL {
+        URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent")!
+    }
 
     // no cache no cookies gives up after 90 seconds since pictures take longer
     private static let session: URLSession = {
@@ -23,9 +25,9 @@ enum GeminiClient {
         return URLSession(configuration: config)
     }()
 
-    // sends the prompt and returns the JSON answer
-    static func generateJSON(instructions: String, prompt: String, schema: [String: Any], apiKey: String) async throws -> Data {
-        let text = try await send(instructions: instructions, parts: [["text": prompt]], config: [
+    // sends the prompt and any blacked out pictures and returns the JSON answer
+    static func generateJSON(instructions: String, prompt: String, jpegs: [Data] = [], schema: [String: Any], apiKey: String) async throws -> Data {
+        let text = try await send(instructions: instructions, parts: parts(jpegs) + [["text": prompt]], config: [
             "temperature": 0,
             "responseMimeType": "application/json",
             "responseSchema": schema,
@@ -33,18 +35,14 @@ enum GeminiClient {
         return Data(text.utf8)
     }
 
-    // sends pictures plus a prompt and returns plain text
-    // only ever gets pictures that were blacked out on the phone
-    static func generateText(instructions: String, prompt: String, jpegs: [Data], apiKey: String) async throws -> String {
-        let pictures: [[String: Any]] = jpegs.map {
-            ["inlineData": ["mimeType": "image/jpeg", "data": $0.base64EncodedString()]]
-        }
-        return try await send(instructions: instructions, parts: pictures + [["text": prompt]],
-                              config: ["temperature": 0], apiKey: apiKey)
-    }
-
     // MARK: - Private
 
+    // page photos as inline jpeg parts
+    private static func parts(_ jpegs: [Data]) -> [[String: Any]] {
+        jpegs.map { ["inlineData": ["mimeType": "image/jpeg", "data": $0.base64EncodedString()]] }
+    }
+
+    // one request, a block reason or empty answer is an error
     private static func send(instructions: String, parts: [[String: Any]], config: [String: Any], apiKey: String) async throws -> String {
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"

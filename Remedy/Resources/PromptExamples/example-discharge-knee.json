@@ -3,10 +3,10 @@
   "paper": "afterSurgery",
   "checkedBy": "",
   "note": "Discharge papers with daily, as-needed and blood thinner medicines, a rule and a visit",
-  "pageText": "Discharge Instructions - Right Knee Replacement\nName: Marcus Bell\n\nMEDICATIONS\nCephalexin 500 mg capsule - take 1 capsule by mouth 4 times a day for 7 days\nOxycodone 5 mg tablet - take 1 tablet every 6 hours as needed for severe pain\nAspirin 81 mg (baby aspirin) - take 1 tablet twice a day for 35 days to prevent blood clots\n\nACTIVITY\nDo not drive for 2 weeks after surgery or while taking oxycodone.\nYou may shower 2 days after surgery. Do not soak in a tub.\n\nFOLLOW UP\nCheck-up with Dr. Patel on November 17, 2026 at 2:30 PM, Orthopedic Office, (201) 555-0142\n\nCall your surgeon if you have a fever over 101 F or redness at the incision.",
+  "pageText": "Discharge Instructions - Right Knee Replacement\nName: Owen Tarrant\n\nMEDICATIONS\nCephalexin 500 mg capsule - take 1 capsule by mouth 4 times a day for 7 days\nOxycodone 5 mg tablet - take 1 tablet every 6 hours as needed for severe pain\nLast given in the hospital: 8:15 AM\nAspirin 81 mg (baby aspirin) - take 1 tablet twice a day for 35 days to prevent blood clots\n\nACTIVITY\nDo not drive for 2 weeks after surgery or while taking oxycodone.\nYou may shower 2 days after surgery. Do not soak in a tub.\n\nFOLLOW UP\nCheck-up with Dr. Patel on November 17, 2026 at 2:30 PM, Orthopedic Office, (201) 555-0142\n\nCall your surgeon if you have a fever over 101 F or redness at the incision.",
   "answer": [
     "Cephalexin: strength \"500 mg\", amount \"1 capsule\", action take, timesPerDay 4, whenText \"for 7 days\", endDay 7",
-    "Oxycodone: strength \"5 mg\", amount \"1 tablet\", action takeAsNeeded, everyHours 6, onlyIf \"severe pain\"",
+    "Oxycodone: strength \"5 mg\", amount \"1 tablet\", action takeAsNeeded, everyHours 6, onlyIf \"severe pain\", lastGivenText \"Last given in the hospital: 8:15 AM\"",
     "Aspirin: strength \"81 mg\", otherNames [\"baby aspirin\"], amount \"1 tablet\", action take, timesPerDay 2, endDay 35, reason \"to prevent blood clots\"",
     "Rule \"No driving\": isAllowed false, whenText \"for 2 weeks after surgery\", startDay 0, endDay 14, condition \"While you take oxycodone\"",
     "Rule \"Showers\": isAllowed true, whenText \"2 days after surgery\", startDay 2",
@@ -16,7 +16,7 @@
   "checks": {
     "stopDays": {},
     "names": [
-      "Marcus Bell"
+      "Owen Tarrant"
     ]
   }
 }

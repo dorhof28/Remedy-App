@@ -2,7 +2,9 @@
 //  TextReader.swift
 //  Remedy
 //
-//  reads the words on a scanned page with vision keeping rows lists and columns
+//  reads the words on a photo or scan of a paper with vision on this iphone
+//  the page is cut out and squared up, read, read again with shadows lifted if it was hard,
+//  then PageStructure puts columns lists and wrapped lines back together from where each word sits
 //
 
 import Foundation
@@ -14,6 +16,7 @@ import os
 struct ScannedLine {
     let text: String
     let box: CGRect
+    var confidence: Float = 1
 }
 
 // a page with its laid out text and the picture
@@ -22,8 +25,16 @@ struct ScannedPage {
     var lines: [ScannedLine] = []
     var barcodes: [CGRect] = []     // patient stickers often have one
     var image: UIImage? = nil
+    // things the patient should check on this page, like a number two reads disagree on
+    var notes: [String] = []
+
+    // how much of the page was read with confidence, used to pick the better of two reads
+    var score: Double {
+        lines.reduce(0) { $0 + Double($1.confidence) * Double($1.text.count) }
+    }
 }
 
+// reads the words on a page photo with vision
 enum TextReader {
 
     private static let log = Logger(subsystem: "Remedy", category: "Reading")
@@ -37,17 +48,101 @@ enum TextReader {
         await scan(image).text
     }
 
-    // every page in order
-    static func scan(_ images: [UIImage]) async -> [ScannedPage] {
+    // every page in order, with an ai reader next to the camera when the patient picked one
+    static func scan(_ images: [UIImage], modelReader: PageModelReader? = nil) async -> [ScannedPage] {
         var pages: [ScannedPage] = []
         for image in images {
-            pages.append(await scan(image))
+            pages.append(await scan(image, modelReader: modelReader))
         }
         return pages
     }
 
-    // reads one page and puts the words back in rows
+    // the camera reading, then the ai reading checked against it
+    static func scan(_ photo: UIImage, modelReader: PageModelReader? = nil) async -> ScannedPage {
+        var page = await scan(photo)
+        // clear misreads in dates and doses are fixed and told to the patient, anything unclear is only shown
+        defer {
+            let repaired = NumberRepair.repair(page.text)
+            page.text = repaired.text
+            page.notes += NumberRepair.notes(repaired.changes) + ReadAgreement.smudgeNotes(repaired.text)
+        }
+        guard let modelReader, let image = page.image else { return page }
+        do {
+            let transcript = try await modelReader.transcribe(image)
+            guard transcript.contains(where: { $0.isLetter }) else { throw PlanReaderError.couldNotRead }
+            let combined = ReadAgreement.combine(model: transcript, camera: page.lines.map(\.text), reader: modelReader.name)
+            page.text = combined.text
+            page.notes += combined.notes
+            log.info("\(modelReader.name) read the page with \(combined.notes.count) notes")
+        } catch {
+            // said to the patient, the camera reading is on this phone too so nothing else is sent anywhere
+            log.error("\(modelReader.name) could not read a page: \(String(describing: type(of: error)))")
+            page.notes.append("\(modelReader.name) couldn\u{2019}t read this page, so the iPhone camera reading was used.")
+        }
+        return page
+    }
+
+    // cut out the page, read it, then read it again with shadows lifted
+    // the better read is kept and any number the two reads disagree on becomes a note
     static func scan(_ photo: UIImage) async -> ScannedPage {
+        guard let raw = upright(photo).cgImage else { return ScannedPage(text: "") }
+        let flat = await PagePreparer.flattened(raw)
+        let picture = UIImage(cgImage: flat)
+        var page = await scanDocument(flat, image: picture)
+
+        if let even = PagePreparer.evenLight(flat) {
+            let second = await scanDocument(even, image: picture)
+            log.info("Second read with even light: \(Int(page.score)) vs \(Int(second.score))")
+            let keepSecond = second.score > page.score * 1.03
+            let other = keepSecond ? page : second
+            if keepSecond { page = second }
+            let mismatches = ReadAgreement.numberMismatches(kept: page.lines.map(\.text), other: other.lines.map(\.text))
+            page.notes = ReadAgreement.notes(mismatches, reader: "The camera")
+        }
+        if page.text.filter({ $0.isLetter || $0.isNumber }).isEmpty {
+            page = await scanLines(picture)
+        }
+        return page
+    }
+
+    // vision document request for the words, tables and list items, laid out by PageStructure
+    static func scanDocument(_ cgImage: CGImage, image: UIImage?) async -> ScannedPage {
+        var request = RecognizeDocumentsRequest()
+        request.textRecognitionOptions.useLanguageCorrection = true
+        request.textRecognitionOptions.recognitionLanguages = [Locale.Language(identifier: "en-US")]
+        request.textRecognitionOptions.customWords = MedicalWords.visionWords
+
+        do {
+            guard let document = try await request.perform(on: cgImage).first?.document else {
+                return ScannedPage(text: "", image: image)
+            }
+            let observations = document.text.lines
+            let lines: [ScannedLine] = observations.compactMap { observation in
+                guard let best = observation.topCandidates(1).first else { return nil }
+                return ScannedLine(text: best.string, box: topLeft(observation.boundingBox.cgRect), confidence: best.confidence)
+            }
+            // the tilt of the photo from the top corners of each line, measured from the top
+            let tilt = PageStructure.slope(of: observations.map {
+                (CGPoint(x: $0.topLeft.x, y: 1 - $0.topLeft.y), CGPoint(x: $0.topRight.x, y: 1 - $0.topRight.y))
+            }) ?? 0
+            // tables keep their cells, list items tell PageStructure where a faint bullet starts an item
+            let tables = document.tables.map { table in
+                PageStructure.Table(box: box(table), rows: table.rows.map { $0.map { $0.content.text.transcript } })
+            }
+            let listStarts = document.lists.flatMap { list in list.items.map { box($0.content) } }
+            let pieces = PageStructure.leveled(lines.map { PageStructure.Piece(text: $0.text, box: $0.box) }, slope: tilt)
+            let text = PageStructure.text(from: pieces,
+                                          tables: tables.map { PageStructure.Table(box: PageStructure.leveled($0.box, slope: tilt), rows: $0.rows) },
+                                          listStarts: listStarts.map { PageStructure.leveled($0, slope: tilt) })
+            return ScannedPage(text: text, lines: lines, barcodes: await findBarcodes(cgImage), image: image)
+        } catch {
+            log.error("Could not read document: \(error.localizedDescription)")
+            return ScannedPage(text: "", image: image)
+        }
+    }
+
+    // the plain line reader, used when the document reader finds nothing
+    static func scanLines(_ photo: UIImage) async -> ScannedPage {
         let image = upright(photo)
         guard let cgImage = image.cgImage else { return ScannedPage(text: "") }
 
@@ -60,19 +155,10 @@ enum TextReader {
         do {
             let observations = try await request.perform(on: cgImage)
             let lines: [ScannedLine] = observations.compactMap { observation in
-                guard let text = observation.topCandidates(1).first?.string else { return nil }
-                let box = observation.boundingBox.cgRect
-                // vision measures from the bottom left
-                return ScannedLine(text: text, box: CGRect(x: box.minX, y: 1 - box.maxY, width: box.width, height: box.height))
+                guard let best = observation.topCandidates(1).first else { return nil }
+                return ScannedLine(text: best.string, box: topLeft(observation.boundingBox.cgRect), confidence: best.confidence)
             }
-            var barcodes: [CGRect] = []
-            if let found = try? await DetectBarcodesRequest().perform(on: cgImage) {
-                for observation in found {
-                    let box = observation.boundingBox.cgRect
-                    barcodes.append(CGRect(x: box.minX, y: 1 - box.maxY, width: box.width, height: box.height))
-                }
-            }
-            return ScannedPage(text: layout(lines), lines: lines, barcodes: barcodes, image: image)
+            return ScannedPage(text: layout(lines), lines: lines, barcodes: await findBarcodes(cgImage), image: image)
         } catch {
             log.error("Could not read page: \(error.localizedDescription)")
             return ScannedPage(text: "", image: image)
@@ -81,60 +167,27 @@ enum TextReader {
 
     // MARK: - Layout
 
-    // groups pieces into rows then adds gaps indents and bullets
+    // the words back in reading order with columns lists and wrapped lines rebuilt
     static func layout(_ lines: [ScannedLine]) -> String {
-        guard !lines.isEmpty else { return "" }
-        let left = lines.map(\.box.minX).sorted()[lines.count / 20]      // ignores a stray piece near the edge
-        let typicalHeight = lines.map(\.box.height).sorted()[lines.count / 2]
-
-        // rows of pieces that sit at the same height
-        var rows: [[ScannedLine]] = []
-        for line in lines.sorted(by: { $0.box.midY < $1.box.midY }) {
-            if let last = rows.last?.last, abs(line.box.midY - last.box.midY) < typicalHeight * 0.5 {
-                rows[rows.count - 1].append(line)
-            } else {
-                rows.append([line])
-            }
-        }
-
-        var output: [String] = []
-        var lastBottom: CGFloat?
-        for row in rows {
-            let pieces = row.sorted { $0.box.minX < $1.box.minX }
-            let top = pieces.map(\.box.minY).min() ?? 0
-
-            // a big gap above means a new paragraph
-            if let lastBottom, top - lastBottom > typicalHeight * 1.2 { output.append("") }
-            lastBottom = pieces.map(\.box.maxY).max()
-
-            // wide gaps between pieces are columns
-            var text = ""
-            var previous: ScannedLine?
-            for piece in pieces {
-                if let previous {
-                    text += piece.box.minX - previous.box.maxX > typicalHeight * 1.5 ? "   " : " "
-                }
-                text += piece.text
-                previous = piece
-            }
-
-            let indent = max(0, min(3, Int(((pieces.first?.box.minX ?? left) - left) / 0.035)))
-            output.append(String(repeating: "  ", count: indent) + bulleted(text))
-        }
-        return output.joined(separator: "\n")
+        PageStructure.text(from: lines.map { PageStructure.Piece(text: $0.text, box: $0.box) })
     }
 
-    // turns the many bullet shapes on paper into one
-    private static func bulleted(_ text: String) -> String {
-        let trimmed = text.trimmingCharacters(in: .whitespaces)
-        for bullet in ["\u{2022}", "\u{25CF}", "\u{25AA}", "\u{25A0}", "\u{25E6}", "\u{25CB}", "\u{00B7}", "\u{F0B7}", "-", "*", ">", "o"]
-        where trimmed.hasPrefix(bullet + " ") {
-            return "\u{2022} " + trimmed.dropFirst(bullet.count + 1).trimmingCharacters(in: .whitespaces)
-        }
-        for box in ["\u{2610}", "\u{25A1}", "[ ]", "[]"] where trimmed.hasPrefix(box) {
-            return "\u{2610} " + trimmed.dropFirst(box.count).trimmingCharacters(in: .whitespaces)
-        }
-        return trimmed
+    // MARK: - Boxes
+
+    // vision measures from the bottom left
+    private static func topLeft(_ box: CGRect) -> CGRect {
+        CGRect(x: box.minX, y: 1 - box.maxY, width: box.width, height: box.height)
+    }
+
+    // vision's boxes start at the bottom left, the app's at the top left
+    private static func box(_ region: some BoundingRegionProviding) -> CGRect {
+        topLeft(region.boundingRegion.normalizedPath.boundingBox)
+    }
+
+    // barcodes on patient stickers carry the record number so they are blacked out too
+    private static func findBarcodes(_ cgImage: CGImage) async -> [CGRect] {
+        guard let found = try? await DetectBarcodesRequest().perform(on: cgImage) else { return [] }
+        return found.map { topLeft($0.boundingBox.cgRect) }
     }
 
     // MARK: - Picture

@@ -7,6 +7,7 @@
 
 import Foundation
 
+// turns phrases like for 2 weeks or day 3 to 5 into plan days
 nonisolated enum DayPhraseParser {
 
     private static let numberWords: [String: Int] = [
@@ -50,6 +51,7 @@ nonisolated enum DayPhraseParser {
         return nil
     }
 
+    // a digit or a number word up to twelve
     private static func number(_ text: String?) -> Int? {
         guard let text else { return nil }
         return Int(text) ?? numberWords[text]

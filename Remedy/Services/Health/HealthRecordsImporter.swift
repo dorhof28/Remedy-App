@@ -8,6 +8,7 @@
 import Foundation
 import os
 
+// reads medicines from apple health's clinical records
 enum HealthRecordsImporter {
 
     // health records to a draft
@@ -21,6 +22,13 @@ enum HealthRecordsImporter {
             throw HealthImportError.notAllowed
         }
 
+        let draft = try Self.draft(from: records, paper: paper)
+        PlanReaders.log.info("Apple Health: \(records.count) records, \(draft.medicines.count) current medicines")
+        return draft
+    }
+
+    // records to a draft, shared by Health and the sample patient
+    static func draft(from records: [Data], paper: PaperKind) throws -> DraftPlan {
         // each record is one medicine
         let decoder = JSONDecoder()
         let medicines = records.compactMap { try? decoder.decode(FHIRMedicationRequest.self, from: $0) }
@@ -28,10 +36,11 @@ enum HealthRecordsImporter {
         var draft = FHIRMapper.draft(medicines: medicines, visits: [], surgeries: [],
                                      paper: paper, now: AppClock.now())
         draft.source = .appleHealth
+        draft.paperSource = .hospitalRecord
         guard !draft.medicines.isEmpty else { throw HealthImportError.nothingFound }
-        PlanReaders.log.info("Apple Health: \(records.count) records, \(draft.medicines.count) current medicines")
         return draft
     }
+
 }
 
 // errors in plain words

@@ -7,6 +7,7 @@
 
 import Foundation
 
+// ask: rules first, then the phone ai picks a line, never a cloud ai
 enum SmartAsk {
 
     // shown before an ai found answer
@@ -14,7 +15,7 @@ enum SmartAsk {
 
     static func answer(_ question: String, plan: CarePlan, today: Int, now: Date) async -> AskAnswer {
         // 1 the rules
-        let ruleAnswer = AskAnswers.answer(question, plan: plan, today: today, now: now)
+        let ruleAnswer = AskAnswers.answerWithCheck(question, plan: plan, today: today, now: now)
         guard ruleAnswer.kind == .notOnPapers else { return ruleAnswer }
 
         // 2 the phone's AI one try

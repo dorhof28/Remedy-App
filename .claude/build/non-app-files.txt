@@ -1,0 +1,16 @@
+Non-app files and folders in the Remedy repo (size from du -sh)
+Ignored by .gitignore: Backup-before-comments/, WidgetDrafts/, xcuserdata/
+
+876K	Backup-before-comments
+1.9M	WidgetDrafts
+4.3G	DemoVideo
+436K	SamplePapers
+4.0K	docs
+144K	.claude
+8.0K	scripts
+4.0K	CLAUDE.md
+ 40K	RemedyUITests
+8.0K	Remedy.xcodeproj/xcuserdata
+160K	Remedy.xcodeproj/project.xcworkspace/xcuserdata
+4.0K	Remedy.xcodeproj/project.xcworkspace/xcshareddata
+ 20K	Remedy.xcodeproj/xcshareddata/xcschemes

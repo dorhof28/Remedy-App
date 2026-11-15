@@ -7,6 +7,7 @@
 
 import Foundation
 
+// turns fhir resources into a draft plan
 enum FHIRMapper {
 
     // hospital records to a draft
@@ -89,6 +90,7 @@ enum FHIRMapper {
         return names
     }
 
+    // 2 tablet, 500 mg or empty
     private static func amountText(_ quantity: FHIRMedicationRequest.Quantity?) -> String {
         guard let value = quantity?.value else { return "" }
         let number = value == value.rounded() ? String(Int(value)) : String(value)
@@ -99,7 +101,7 @@ enum FHIRMapper {
 
     // one appointment to a draft visit
     static func visit(_ appointment: FHIRAppointment) -> DraftAppointment? {
-        guard let when = appointment.start.flatMap(date(from:)) else { return nil }
+        guard let when = appointment.start.flatMap({ date(from: $0) }) else { return nil }
         let title = appointment.serviceType?.first?.bestText ?? appointment.description ?? "Appointment"
         let people = appointment.participant ?? []
         let doctor = people.first { $0.actor?.reference?.hasPrefix("Practitioner") == true }?.actor?.display ?? ""
@@ -125,8 +127,27 @@ enum FHIRMapper {
             .map(\.0)
     }
 
+    // MARK: - Visit papers
+
+    // only words we can read on the phone, a pdf or rtf note is left for the patient to scan
+    static func isReadable(_ attachment: FHIRDocumentReference.Attachment) -> Bool {
+        let type = attachment.contentType ?? ""
+        return type.hasPrefix("text/plain") || type.hasPrefix("text/html")
+    }
+
+    // one note to a paper the patient can pick, nil when it has no words
+    static func paper(_ document: FHIRDocumentReference, text: String) -> RecordPaper? {
+        let words = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !words.isEmpty else { return nil }
+        let title = [document.type?.bestText, document.description, document.content?.first?.attachment?.title]
+            .compactMap { $0?.trimmingCharacters(in: .whitespaces) }
+            .first { !$0.isEmpty } ?? "Visit paper"
+        return RecordPaper(id: document.id ?? UUID().uuidString, title: title,
+                           date: document.date.flatMap(date(from:)), text: words)
+    }
+
     // FHIR dates "2026-11-02T14:30:00Z" sometimes with fractions of a second
-    static func date(from text: String) -> Date? {
+    nonisolated static func date(from text: String) -> Date? {
         let formatter = ISO8601DateFormatter()
         if let date = formatter.date(from: text) { return date }
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]

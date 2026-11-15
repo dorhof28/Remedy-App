@@ -2,95 +2,75 @@
 //  SimpleMedicineDetailView.swift
 //  Remedy
 //
-//  simple one medicine
+//  simple one medicine (82): the answer in a tinted card, one big button, then the paper
 //
 
 import SwiftUI
 import SwiftData
 
+// simple medicine page
 struct SimpleMedicineDetailView: View {
     let medicine: MedicineInstruction
 
     @Environment(\.modelContext) private var context
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dismiss) private var dismiss
     @State private var isConfirmingLog = false
+    @State private var isLoggingEarlier = false
+    @State private var isShowingPaper = false
+    // UI only the medicine is being deleted so nothing reads it any more
+    @State private var isRemoved = false
+    // redraws the cards when the office's answer is saved
+    @Query private var checkNotes: [PaperCheckNote]
 
     var body: some View {
+        if isRemoved {
+            RemedyBackground()
+        } else {
+            content
+        }
+    }
+
+    private var content: some View {
         TimelineView(.everyMinute) { _ in
             let viewModel = MedicineDetailViewModel(medicine: medicine, now: AppClock.now())
-            SimpleScreen(title: viewModel.title) {
-                // the answer first and biggest
-                HStack(alignment: .top, spacing: 14) {
-                    MedicineIcon(pillShape: viewModel.pillShape, pillColor: viewModel.pillColor,
-                                 symbol: viewModel.topSymbol, tone: viewModel.topTone, size: 64)
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(viewModel.verdictHeadline)
-                            .font(.title2.bold())
-                            .foregroundStyle(viewModel.verdictTone.color)
-                        Text(viewModel.verdictSentence)
-                            .font(.title3)
-                            .lineLimit(5)
-                            .minimumScaleFactor(0.85)
-                    }
+            let check = PaperCheckViewModel(plan: medicine.plan, now: viewModel.now)
+            let red = check.redCards(for: medicine)
+            SimpleScreen(title: viewModel.headerName) {
+                let subtitle = SimpleMedicineWords.subtitle(medicine, fallback: viewModel.paperNameLine)
+                if !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.title3)
+                        .foregroundStyle(Color.ink2)
+                        .padding(.top, -6)
                 }
-                .padding(18)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .cardStyle(viewModel.verdictTone.color.opacity(0.12))
-                .accessibilityElement(children: .combine)
+
+                // papers disagree comes first, phrased as the thing to do
+                if !red.isEmpty { SimpleDisagreementCard(cards: red) }
+
+                verdictCard(viewModel)
+
+                ForEach(check.blueNotes(for: medicine)) { PaperCheckNoteCard(card: $0, simple: true) }
 
                 if viewModel.showsAsNeeded {
-                    Text(viewModel.asNeededStatusText)
-                        .font(.title3.bold())
-                        .foregroundStyle(viewModel.asNeededTone.color)
-                    Button {
-                        isConfirmingLog = true
-                    } label: {
-                        Label(viewModel.logButtonTitle, systemImage: "checkmark")
-                    }
-                    .buttonStyle(SimpleButtonStyle())
-                    .disabled(!viewModel.canLogAsNeeded)
-                }
-
-                // today's times as big buttons side by side
-                if viewModel.showsTodayDoses {
-                    Text(viewModel.todayDosesSummary)
-                        .font(.title3.bold())
-                    HStack(spacing: 10) {
-                        ForEach(viewModel.todayDoses.prefix(3)) { row in
-                            Button {
-                                Motion.perform(reduceMotion) { viewModel.toggle(row, in: context) }
-                            } label: {
-                                VStack(spacing: 6) {
-                                    CheckCircle(state: row.state, size: 34)
-                                    Text(row.timeText)
-                                        .font(.headline)
-                                    Text(row.stateText)
-                                        .font(.subheadline)
-                                        .foregroundStyle(row.tone.color)
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.7)
-                                }
-                                .frame(maxWidth: .infinity, minHeight: 110)
-                                .cardStyle()
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(row.spokenLabel)
-                            .accessibilityHint(row.spokenHint)
+                    if viewModel.canLogAsNeeded {
+                        Button { isConfirmingLog = true } label: {
+                            Label(SimpleMedicineWords.tookOne, systemImage: "checkmark")
                         }
+                        .buttonStyle(SimpleButtonStyle())
                     }
                 }
 
-                Spacer(minLength: 0)
+                Button(SimpleMedicineWords.showPaper) { isShowingPaper = true }
+                    .buttonStyle(SimpleButtonStyle(kind: .gray))
 
-                HStack(spacing: 12) {
-                    NavigationLink {
-                        SimpleMedicineMoreView(medicine: medicine)
-                    } label: {
-                        Label("More about it", systemImage: "info.circle")
-                    }
-                    .buttonStyle(SimpleButtonStyle(kind: .plain, height: 60))
-                    ReadAloudButton(title: "Read to me", text: viewModel.verdictSpoken)
-                }
+            }
+            .fullScreenCover(isPresented: $isShowingPaper) {
+                SourceQuoteSheet(data: viewModel.sourceQuote, report: viewModel.mistakeReport,
+                                 title: viewModel.quoteSheetTitle, large: true)
+            }
+            .sheet(isPresented: $isLoggingEarlier) {
+                EarlierDoseSheet(viewModel: viewModel, large: true)
             }
             .confirmationDialog(viewModel.logConfirmationTitle, isPresented: $isConfirmingLog, titleVisibility: .visible) {
                 Button(viewModel.logConfirmButton) {
@@ -101,23 +81,65 @@ struct SimpleMedicineDetailView: View {
             }
         }
     }
-}
 
-// MARK: - More about it (facts + the line from the papers)
-
-// the rest of the medicine info
-struct SimpleMedicineMoreView: View {
-    let medicine: MedicineInstruction
-
-    var body: some View {
-        let viewModel = MedicineDetailViewModel(medicine: medicine, now: AppClock.now())
-        SimpleScreen(title: viewModel.title) {
-            Card {
-                PaperQuoteCard(quote: viewModel.quote, source: viewModel.quoteSource)
+    // the answer in a tinted card with a big check row for each of today's doses
+    private func verdictCard(_ viewModel: MedicineDetailViewModel) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            let canTake = viewModel.showsAsNeeded && viewModel.canLogAsNeeded
+            let eyebrow = SimpleMedicineWords.eyebrow(medicine, canTake: canTake, fallback: viewModel.verdictEyebrow)
+            let symbol = canTake ? "checkmark.circle" : viewModel.verdictEyebrowSymbol
+            VStack(alignment: .leading, spacing: 6) {
+                if !eyebrow.isEmpty {
+                    Group {
+                        if symbol.isEmpty {
+                            Text(eyebrow)
+                        } else {
+                            Label(eyebrow, systemImage: symbol)
+                        }
+                    }
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(viewModel.verdictCardTone == .neutral ? Color.ink2 : viewModel.verdictCardTone.color)
+                }
+                ForEach(SimpleMedicineWords.lines(medicine, canTake: canTake,
+                                                  title: SimpleWording.plain(viewModel.verdictTitle),
+                                                  detail: SimpleWording.plain(viewModel.verdictDetail)), id: \.self) { line in
+                    Text(line)
+                        .font(.title3)
+                        .foregroundStyle(Color.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            SimplePagedList(items: viewModel.howToRows, perPage: 3) { row in
-                SimpleFactCard(row: row)
+            .accessibilityElement(children: .combine)
+
+            ForEach(viewModel.doseChips) { chip in
+                Button {
+                    Motion.perform(reduceMotion) { viewModel.toggle(chip.row, in: context) }
+                } label: {
+                    HStack(spacing: 14) {
+                        RadioMark(isOn: chip.isTaken, size: 34)
+                        Text(chip.text)
+                            .font(.title3.weight(.semibold))
+                            .monospacedDigit()
+                            .foregroundStyle(Color.ink)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(minHeight: Spacing.tapSimple)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(chip.row.spokenLabel)
+                .accessibilityHint(chip.row.spokenHint)
             }
+            .sensoryFeedback(.success, trigger: viewModel.todayTakenCount) { old, new in new > old }
         }
+        .simpleOutlineCard(isNext: false, tone: viewModel.verdictCardTone)
+    }
+
+    // what read aloud says for this medicine
+    private func spoken(_ viewModel: MedicineDetailViewModel) -> String {
+        var parts = [viewModel.paperNameLine, viewModel.verdictSpokenCard]
+        if viewModel.hasPaperQuote { parts.append("\(viewModel.simplePaperSays): \(viewModel.medicine.quote)") }
+        return parts.filter { !$0.isEmpty }.joined(separator: ". ")
     }
 }
+

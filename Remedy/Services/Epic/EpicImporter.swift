@@ -10,10 +10,11 @@ import Foundation
 import os
 import SwiftUI
 
+// signs in, reads the record and maps it to a draft
 enum EpicImporter {
 
     // sign in read and map
-    static func importPlan(paper: PaperKind, using webAuth: WebAuthenticationSession) async throws -> DraftPlan {
+    static func importPlan(paper: PaperKind, using webAuth: WebAuthenticationSession) async throws -> RecordImport {
         guard EpicConfig.isSetUp else { throw EpicError.notSetUp }
 
         let token = try await SMARTAuth.signIn(using: webAuth)
@@ -22,10 +23,13 @@ enum EpicImporter {
         let medicines = try await client.medicines()
         let visits = try await client.visits()
         let surgeries = await client.surgeries()
+        let papers = await client.papers()
 
-        PlanReaders.log.info("MyChart: \(medicines.count) medicine orders, \(visits.count) visits, \(surgeries.count) surgeries")
-        return FHIRMapper.draft(medicines: medicines, visits: visits, surgeries: surgeries,
-                                paper: paper, now: AppClock.now())
+        PlanReaders.log.info("MyChart: \(medicines.count) medicine orders, \(visits.count) visits, \(surgeries.count) surgeries, \(papers.count) papers")
+        var draft = FHIRMapper.draft(medicines: medicines, visits: visits, surgeries: surgeries,
+                                     paper: paper, now: AppClock.now())
+        draft.paperSource = .hospitalRecord
+        return RecordImport(draft: draft, papers: papers)
     }
 }
 

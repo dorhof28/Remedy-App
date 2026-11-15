@@ -10,6 +10,7 @@
 import SwiftUI
 import SwiftData
 
+// the app: opens the database and shows the root view
 @main
 struct RemedyApp: App {
 
@@ -22,14 +23,12 @@ struct RemedyApp: App {
     init() {
         // lets the "I took it" button on a notification save to the database
         NotificationService.shared.start(container: container)
-        // gemini key from a private xcode scheme
-        GeminiPlanReader.saveKeyFromXcode()
     }
 
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .keepsRemindersUpToDate()
+            DemoClockRoot()
+                .textFieldStyle(RemedyTextFieldStyle())
         }
         .modelContainer(container)
     }
@@ -43,14 +42,30 @@ struct RemedyApp: App {
         do {
             let container = try ModelContainer(for: schema, configurations: configuration)
 
-            if LaunchOptions.usesSamplePlan && !LaunchOptions.startsEmpty {
+            if let scenario = LaunchOptions.demoScenario, !LaunchOptions.startsEmpty {
+                DemoMode.insert(scenario, into: container.mainContext)
+            } else if LaunchOptions.usesSamplePlan && !LaunchOptions.startsEmpty {
                 // demoDay -4 means surgery is 4 days from today
                 SamplePlan.insert(into: container.mainContext, surgeryInDays: -LaunchOptions.demoDay)
+                // made up patient name so family share shows one
+                if PatientNames.saved.isEmpty { PatientNames.save(SamplePlan.patientName) }
             }
             return container
-        } catch {
+        } catch { 
             // only happens if the models are broken so crash loudly while building
             fatalError("Could not open the database: \(error)")
         }
+    }
+}
+
+// the app redraws from the top after the Demo mode clock moved, so every screen reads the new fake today
+private struct DemoClockRoot: View {
+    @State private var stamp = 0
+
+    var body: some View {
+        RootView()
+            .keepsRemindersUpToDate()
+            .id(stamp)
+            .onReceive(NotificationCenter.default.publisher(for: .demoClockChanged)) { _ in stamp += 1 }
     }
 }

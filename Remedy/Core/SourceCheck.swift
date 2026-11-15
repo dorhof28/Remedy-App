@@ -8,12 +8,13 @@
 import Foundation
 
 // finds text on the page
-struct SourceMatcher {
+nonisolated struct SourceMatcher {
 
     let text: String
     private let normalized: String
     private let compact: String         // no spaces, so "81mg" matches "81 mg"
 
+    // keeps three forms of the page text so quotes match with or without spaces and case
     init(text: String) {
         self.text = text
         self.normalized = Self.normalize(text)
@@ -50,7 +51,7 @@ struct SourceMatcher {
 }
 
 // checks numbers and days are written
-enum SourceCheck {
+nonisolated enum SourceCheck {
 
     // is this day number really written in the text
     static func isDayStated(_ day: Int, in text: String) -> Bool {

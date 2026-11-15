@@ -14,6 +14,7 @@ struct DoseUndo {
     let previousStatus: DoseStatus?
 }
 
+// logs doses, each log returns an undo
 enum DoseActions {
 
     // saves a taken or skipped dose
@@ -47,6 +48,23 @@ enum DoseActions {
         log.medicine = medicine
         context.saveNow()
         return DoseUndo(log: log, previousStatus: nil)
+    }
+
+    // 94, a dose answer or time changed in the dose log, marked changed by you
+    @discardableResult
+    static func change(_ medicine: MedicineInstruction, scheduledFor time: Date, to status: DoseStatus,
+                       takenAt: Date, in context: ModelContext) -> DoseLog {
+        let log = DoseSchedule.savedLog(for: medicine, at: time) ?? {
+            let new = DoseLog(scheduledFor: time, status: status, loggedAt: takenAt)
+            context.insert(new)
+            new.medicine = medicine
+            return new
+        }()
+        log.status = status
+        log.loggedAt = status == .taken ? takenAt : log.loggedAt
+        log.changedByYou = true
+        context.saveNow()
+        return log
     }
 
     // takes a saved dose back off

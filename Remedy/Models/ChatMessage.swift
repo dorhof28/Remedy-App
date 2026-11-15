@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+// one question or answer in ask, kept so the chat is there next time
 @Model
 final class ChatMessage {
 
@@ -29,8 +30,11 @@ final class ChatMessage {
     // number for the Call button
     var callPhone: String = ""
 
-    // AnswerKind raw value fromPapers / notOnPapers / callSurgeon / call911
+    // AnswerKind raw value fromPapers / notOnPapers / callSurgeon / call911 / whichOne
     var kindRaw: String = ""
+
+    // whichOne: the medicine names to tap
+    var choices: [String] = []
 
     init(text: String, isFromPatient: Bool, quote: String = "", isWarning: Bool = false) {
         self.text = text

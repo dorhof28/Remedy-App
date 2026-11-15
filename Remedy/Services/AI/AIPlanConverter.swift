@@ -54,10 +54,20 @@ enum AIPlanConverter {
             for m in plan.medicines {
                 if let medicine = medicine(m, source: source, pages: pages) {
                     draft.medicines.append(medicine)
-                } else { thrownOut += 1 }
+                } else {
+                    thrownOut += 1
+                    let said = [m.name, m.strength, m.whenText].filter { !$0.isEmpty }.joined(separator: ", ")
+                    draft.leftOut.append(LeftOutItem(id: thrownOut, kind: .medicine,
+                                                     name: LeftOutItems.displayName(m.name, fallback: m.quote), aiSaid: said,
+                                                     reason: LeftOutItem.notOnPapers, quote: m.quote, page: nil))
+                }
             }
             for r in plan.rules {
-                guard !r.title.isEmpty, isOnPage(r.quote, source) else { thrownOut += 1; continue }
+                guard !r.title.isEmpty, isOnPage(r.quote, source) else {
+                    thrownOut += 1
+                    draft.leftOut.append(leftOut(thrownOut, .rule, name: r.title, said: r.whenText, quote: r.quote))
+                    continue
+                }
                 let evidence = r.quote + " " + r.whenText + " " + context(of: r.quote, in: source.text).joined(separator: " ")
                 draft.rules.append(DraftRule(title: r.title, isAllowed: r.isAllowed, condition: r.condition,
                                              startDay: checked(r.startDay, in: evidence),
@@ -65,19 +75,28 @@ enum AIPlanConverter {
                                              quote: r.quote, quotePage: page(of: r.quote, in: pages)))
             }
             for t in plan.tasks {
-                guard !t.title.isEmpty, isOnPage(t.quote, source) else { thrownOut += 1; continue }
+                guard !t.title.isEmpty, isOnPage(t.quote, source) else {
+                    thrownOut += 1
+                    draft.leftOut.append(leftOut(thrownOut, .task, name: t.title, said: "", quote: t.quote))
+                    continue
+                }
                 draft.tasks.append(DraftTask(title: t.title, dueDay: checked(t.dueDay, in: t.quote),
                                              quote: t.quote, quotePage: page(of: t.quote, in: pages)))
             }
             for v in plan.visits {
-                guard !v.title.isEmpty, isOnPage(v.quote, source) else { thrownOut += 1; continue }
+                guard !v.title.isEmpty, isOnPage(v.quote, source) else {
+                    thrownOut += 1
+                    draft.leftOut.append(leftOut(thrownOut, .visit, name: v.title, said: v.dateText, quote: v.quote))
+                    continue
+                }
                 addVisit(v, to: &draft, source: source, pages: pages)
             }
             for c in plan.contacts {
                 let phone = digits(c.phone)
                 guard phone.count >= 7, digits(source.text).contains(phone) else { continue }   // number really on the page
                 draft.contacts.append(DraftContact(name: c.name, detail: c.detail, phone: phone,
-                                                   role: c.isPharmacy ? .pharmacy : .careTeam))
+                                                   role: c.isPharmacy ? .pharmacy : .careTeam,
+                                                   email: EmailFinder.address(forPhone: phone, name: c.name, in: source.text) ?? ""))
             }
         }
 
@@ -90,6 +109,15 @@ enum AIPlanConverter {
 
     // MARK: - Pieces
 
+    // one thing thrown out, with why
+    private static func leftOut(_ id: Int, _ kind: LeftOutItem.Kind, name: String, said: String, quote: String) -> LeftOutItem {
+        let hasName = !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let words = [name, said].filter { !$0.isEmpty }.joined(separator: ", ")
+        return LeftOutItem(id: id, kind: kind, name: LeftOutItems.displayName(name, fallback: quote), aiSaid: words,
+                           reason: hasName ? LeftOutItem.notOnPapers : LeftOutItem.noName, quote: quote, page: nil)
+    }
+
+    // one ai medicine to a draft medicine, nil when its quote is not on the page
     private static func medicine(_ m: AIMedicine, source: SourceMatcher, pages: [String]) -> DraftMedicine? {
         let raw = m.name.trimmingCharacters(in: .whitespacesAndNewlines)
         let cleaned = m.isGroup ? CleanMedicineName(name: raw, strength: "", otherNames: []) : MedicineNameCleaner.clean(raw)
@@ -130,8 +158,11 @@ enum AIPlanConverter {
             amount: source.containsIgnoringSpaces(m.amount) ? m.amount : "",
             timesOfDay: action == .take ? doseTimes(m) : [],
             foodNote: m.foodNote, onlyIf: m.onlyIf,
-            minHoursBetween: action == .takeAsNeeded ? m.everyHours : nil,
+            // every n hours is also the gap for a daily medicine so a hospital dose can set the first home one
+            minHoursBetween: action == .takeAsNeeded || action == .take ? m.everyHours : nil,
             maxPerDay: m.maxPerDay, reason: m.reason, exception: m.exception,
+            // kept as words, the importer checks it against the page
+            lastGivenText: m.lastGivenText.trimmingCharacters(in: .whitespacesAndNewlines),
             quote: quote, quotePage: page(of: quote, in: pages) ?? page(of: nameOnPage, in: pages))
     }
 

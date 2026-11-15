@@ -24,10 +24,11 @@ struct RuleStatus {
     let answer: String      // a full sentence for Ask
 }
 
+// words for rules and plan items, worked out from today's plan day
 enum PlanWording {
 
     // rule status for today
-    static func ruleStatus(_ rule: CareRule, today: Int, surgeryDate: Date) -> RuleStatus {
+    static func ruleStatus(_ rule: some RuleFacts, today: Int, surgeryDate: Date) -> RuleStatus {
         let start = DoseSchedule.startDay(of: rule)
         let end = rule.endDay ?? Int.max
 
@@ -68,7 +69,7 @@ enum PlanWording {
     }
 
     // for tasks
-    static func taskDueText(_ task: CareTask, today: Int, surgeryDate: Date) -> String {
+    static func taskDueText(_ task: some TaskFacts, today: Int, surgeryDate: Date) -> String {
         if task.isDone {
             if let doneAt = task.doneAt { return "Done at \(DayMath.timeText(of: doneAt))" }
             return "Done"
@@ -77,12 +78,17 @@ enum PlanWording {
         if due == today { return "Due today" }
         let date = DayMath.shortDate(forDay: due, from: surgeryDate)
         if due < today { return "Was due \(date)" }
-        if due == 0 { return "Due \(date) · surgery day" }
-        return "Due \(date) · \(DayMath.relative(daysFromToday: due - today))"
+        if due == today + 1 { return "Due tomorrow" }
+        return "Due \(date)"
+    }
+
+    // how urgent a to-do line is: late is true, the view picks the colour
+    static func taskIsLate(_ task: some TaskFacts, today: Int) -> Bool {
+        !task.isDone && (task.dueDay ?? today) < today
     }
 
     // is the task for today
-    static func isOnToday(_ task: CareTask, today: Int) -> Bool {
+    static func isOnToday(_ task: some TaskFacts, today: Int) -> Bool {
         guard !task.isDone, let due = task.dueDay else { return false }
         if due == today { return true }
         let paperNow: PaperKind = today >= 1 ? .afterSurgery : .beforeSurgery

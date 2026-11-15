@@ -2,231 +2,224 @@
 //  SimplePlanView.swift
 //  Remedy
 //
-//  simple plan overview groups and visits
+//  simple plan pages: instructions and one visit
 //
 
 import SwiftUI
 import SwiftData
 
-struct SimplePlanView: View {
-
+// instructions: read to me, then one big card per topic with every line and its mark
+struct SimplePlanRulesView: View {
     @Query(sort: \CarePlan.createdAt, order: .reverse) private var plans: [CarePlan]
 
+    // UI only the line whose paper words are open
+    @State private var quoted: ReminderRow?
+
     var body: some View {
-        TimelineView(.everyMinute) { _ in
-            let viewModel = PlanViewModel(plan: plans.first, now: AppClock.now())
-            SimpleScreen(title: "My plan") {
-                ForEach(viewModel.simpleGroups) { group in
-                    NavigationLink(value: SimpleRoute.planGroup(group.id)) {
-                        SimpleGroupButton(group: group)
-                    }
-                    .buttonStyle(.plain)
-                }
-                Spacer(minLength: 0)
+        let viewModel = PlanViewModel(plan: plans.first, now: AppClock.now())
+        let now = viewModel.instructionGroups(.now)
+        let later = viewModel.instructionGroups(.later)
+        SimpleScreen(title: viewModel.simpleDosTitle, readAloud: viewModel.instructionsSpoken(.all)) {
+            if now.isEmpty && later.isEmpty {
+                Text(viewModel.instructionsEmptyText)
+                    .font(.title3)
+                    .foregroundStyle(Color.ink2)
+            } else {
+                Text(viewModel.simpleDosIntro)
+                    .font(.title3)
+                    .foregroundStyle(Color.ink2)
             }
+            ForEach(now) { group in
+                InstructionTopicCard(group: group, large: true) { quoted = $0 }
+            }
+            if !later.isEmpty {
+                SimpleSectionTitle(title: viewModel.simpleLaterTitle, tone: .info, symbol: "calendar.badge.clock")
+                ForEach(later) { group in
+                    InstructionTopicCard(group: group, large: true) { quoted = $0 }
+                }
+            }
+        }
+        .sheet(item: $quoted) { row in
+            PlanQuoteSheet(title: row.text, quote: row.quote, source: row.source, large: true)
         }
     }
 }
 
-// MARK: - One group, page by page
-
-// one group of the plan
-struct SimplePlanGroupView: View {
-    let groupID: String
-
-    @Query(sort: \CarePlan.createdAt, order: .reverse) private var plans: [CarePlan]
-    @Environment(\.modelContext) private var context
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+// the right edit screen for a tapped target
+struct SimplePlanEditor: View {
+    let target: PlanEditTarget
+    let plan: CarePlan
 
     var body: some View {
-        TimelineView(.everyMinute) { _ in
-            let viewModel = PlanViewModel(plan: plans.first, now: AppClock.now())
-            let group = viewModel.simpleGroups.first { $0.id == groupID }
-            SimpleScreen(title: group?.title ?? viewModel.title) {
-                switch PlanViewModel.SimplePlanGroup(rawValue: groupID) {
-                case .today:
-                    let events = viewModel.events(onDay: viewModel.todayID)
-                    if events.isEmpty {
-                        Text(viewModel.emptyDayText(viewModel.todayID))
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                    }
-                    SimplePagedList(items: events) { row in
-                        SimpleRowCard(title: row.title, subtitle: row.detail, showsChevron: false) {
-                            IconTile(symbol: row.symbol, tone: row.tone, size: 48)
-                        }
-                    }
-                case .notYet:
-                    ruleList(viewModel.notYetRows)
-                case .ok:
-                    ruleList(viewModel.okRows)
-                case .comingUp:
-                    ruleList(viewModel.comingUpRows)
-                case .visits:
-                    SimplePagedList(items: viewModel.visitRows) { row in
-                        NavigationLink(value: row.appointment) {
-                            SimpleRowCard(title: row.title, subtitle: row.detail, status: row.relative, tone: .info) {
-                                DateTile(month: row.month, day: row.dayNumber, weekday: row.weekday, size: 56)
-                            }
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(row.spokenLabel)
-                    }
-                case .tasks:
-                    SimplePagedList(items: viewModel.taskRows) { row in
-                        Button {
-                            Motion.perform(reduceMotion) { viewModel.toggle(row, in: context) }
-                        } label: {
-                            SimpleRowCard(title: row.title, subtitle: row.detail, showsChevron: false) {
-                                Image(systemName: row.checkSymbol)
-                                    .font(.system(size: 36))
-                                    .foregroundStyle(row.checkTone.color)
-                                    .contentTransition(.symbolEffect(.replace))
-                            }
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(row.spokenLabel)
-                        .accessibilityHint(row.spokenHint)
-                        .sensoryFeedback(.success, trigger: row.isDone) { _, isDone in isDone }
-                    }
-                case nil:
-                    EmptyView()
-                }
-            }
-        }
-    }
-
-    private func ruleList(_ rows: [RuleRow]) -> some View {
-        SimplePagedList(items: rows) { row in
-            SimpleRowCard(title: row.title, subtitle: row.detail, status: row.headline, tone: row.tone, showsChevron: false) {
-                IconTile(symbol: row.symbol, tone: row.tone, size: 48)
-            }
-            .accessibilityLabel(row.spokenLabel)
+        switch target {
+        case .medicine(let medicine): SimpleMedicineEditView(medicine: medicine, plan: plan, now: AppClock.now())
+        case .visit(let visit): SimpleAppointmentEditView(appointment: visit, plan: plan, now: AppClock.now())
+        case .task(let task): SimpleTaskEditView(task: task, plan: plan, now: AppClock.now())
         }
     }
 }
 
-// MARK: - One visit (fits one screen; lists open on their own page)
+// MARK: - One group
 
-// one visit
+// MARK: - One visit
+
+// one visit, bigger: when, where with directions and calendar, who with call and text, notes, the paper
 struct SimpleVisitView: View {
     let appointment: Appointment
 
     @Environment(\.modelContext) private var context
-    // UI only is Apple's "New Event" screen open
+    @Environment(\.dismiss) private var dismiss
+    // UI only Apple's "New Event" screen, the edit screen and the quote
     @State private var isAddingToCalendar = false
+    @State private var isEditing = false
+    @State private var showsQuote = false
+    // hides the visit while it is deleted
+    @State private var isRemoved = false
 
     var body: some View {
+        if isRemoved {
+            RemedyBackground()
+        } else {
+            content
+        }
+    }
+
+    private var content: some View {
         TimelineView(.everyMinute) { _ in
             let viewModel = AppointmentDetailViewModel(appointment: appointment, now: AppClock.now())
-            let parts = viewModel.dateParts
-            SimpleScreen(title: viewModel.title) {
-                HStack(spacing: 16) {
-                    DateTile(month: parts.month, day: parts.day, weekday: parts.weekday, size: 84)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(viewModel.relativeText)
-                            .font(.title2.bold())
-                            .foregroundStyle(Color.remedyTeal)
-                        Text(viewModel.subtitle)
-                            .font(.title3)
-                            .lineLimit(3)
-                            .minimumScaleFactor(0.85)
-                    }
-                }
-                .accessibilityElement(children: .combine)
+            SimpleScreen(title: viewModel.title,
+                         readAloud: [viewModel.whenText, viewModel.placeTitle, viewModel.purpose].filter { !$0.isEmpty }.joined(separator: ". ")) {
+                Text(viewModel.whenText)
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(Color.accentInk)
 
-                if viewModel.showsPurpose {
-                    Text(viewModel.purpose)
-                        .font(.title3)
-                        .lineLimit(4)
-                        .minimumScaleFactor(0.85)
-                }
-
-                HStack(spacing: 12) {
-                    if let phoneURL = viewModel.phoneURL {
-                        Link(destination: phoneURL) {
-                            Label(viewModel.callTitle, systemImage: "phone.fill")
+                // where, with the two big place buttons
+                VStack(alignment: .leading, spacing: 14) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(viewModel.placeTitle.isEmpty ? viewModel.noPlaceText : viewModel.placeTitle)
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(viewModel.placeTitle.isEmpty ? Color.ink2 : Color.ink)
+                        if !viewModel.placeDetail.isEmpty {
+                            Text(viewModel.placeDetail).font(.body).foregroundStyle(Color.ink2)
                         }
-                        .buttonStyle(SimpleButtonStyle())
                     }
+                    .fixedSize(horizontal: false, vertical: true)
                     if let mapsURL = viewModel.mapsURL {
-                        Link(destination: mapsURL) {
-                            Label(viewModel.directionsTitle, systemImage: "map.fill")
+                        Link(destination: mapsURL) { Label(viewModel.directionsTitle, systemImage: "map") }
+                            .buttonStyle(SimpleButtonStyle())
+                    }
+                    if viewModel.showsCalendarButton {
+                        Button {
+                            isAddingToCalendar = true
+                        } label: {
+                            Label(viewModel.calendarButtonTitle, systemImage: viewModel.calendarButtonSymbol)
                         }
                         .buttonStyle(SimpleButtonStyle(kind: .plain))
-                    }
-                }
-
-                if viewModel.showsCalendarButton {
-                    Button {
-                        isAddingToCalendar = true
-                    } label: {
-                        Label(viewModel.calendarButtonTitle, systemImage: viewModel.calendarButtonSymbol)
-                    }
-                    .buttonStyle(SimpleButtonStyle(kind: .plain, height: 56))
-                    .disabled(!viewModel.canAddToCalendar)
-                    .sheet(isPresented: $isAddingToCalendar) {
-                        CalendarEventSheet(event: viewModel.calendarEvent()) { added in
-                            if added { viewModel.markAddedToCalendar(in: context) }
-                            isAddingToCalendar = false
+                        .disabled(!viewModel.canAddToCalendar)
+                        .sheet(isPresented: $isAddingToCalendar) {
+                            CalendarEventSheet(event: viewModel.calendarEvent(), onDone: { _ in
+                                isAddingToCalendar = false
+                            }, onSaved: { id in
+                                viewModel.markAddedToCalendar(eventID: id, in: context)
+                            })
+                            .ignoresSafeArea()
                         }
-                        .ignoresSafeArea()
+                    }
+                }
+                .padding(Spacing.insideCard)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .cardStyle()
+
+                if viewModel.showsDoctor {
+                    SimplePlanRow(kind: .custom(symbol: "person", tone: .neutral), title: viewModel.doctorName,
+                                  detail: viewModel.doctorDetail) {
+                        if viewModel.phoneURL != nil {
+                            ContactCapsule(name: viewModel.doctorName, phoneURL: viewModel.phoneURL,
+                                           messageURL: viewModel.messageURL, large: true)
+                        }
                     }
                 }
 
-                if viewModel.showsBring {
-                    NavigationLink {
-                        SimpleListPage(title: viewModel.bringTitle, items: viewModel.bringItems, symbol: "checkmark.circle")
-                    } label: {
-                        SimpleGroupButton(group: SimpleGroup(id: "bring", title: viewModel.bringTitle, symbol: "bag.fill", tone: .info,
-                                                             count: viewModel.bringItems.count,
-                                                             preview: SimpleGroup.preview(viewModel.bringItems)))
+                if viewModel.showsPurpose {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(viewModel.whyTitle).font(.headline).foregroundStyle(Color.ink2)
+                        Text(viewModel.purpose).font(.title3).foregroundStyle(Color.ink)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                    .buttonStyle(.plain)
+                    .padding(Spacing.insideCard)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .cardStyle()
+                    .accessibilityElement(children: .combine)
+                }
+
+                // what to bring and what to ask, right here so there is no page under a page
+                if viewModel.showsBring {
+                    SimpleLinesCard(title: viewModel.bringTitle, items: viewModel.bringItems, symbol: "bag")
                 }
                 if viewModel.showsQuestions {
-                    NavigationLink {
-                        SimpleListPage(title: viewModel.questionsTitle, items: viewModel.questions, symbol: "questionmark.circle")
-                    } label: {
-                        SimpleGroupButton(group: SimpleGroup(id: "questions", title: viewModel.questionsTitle, symbol: "text.bubble.fill",
-                                                             tone: .info, count: viewModel.questions.count,
-                                                             preview: SimpleGroup.preview(viewModel.questions, show: 1)))
-                    }
-                    .buttonStyle(.plain)
+                    SimpleLinesCard(title: viewModel.questionsTitle, items: viewModel.questions, symbol: "questionmark.bubble")
                 }
-                Spacer(minLength: 0)
+
+                if viewModel.showsSource {
+                    SourceRow(title: viewModel.sourceTitle, detail: viewModel.sourceDetail,
+                              action: viewModel.quote.isEmpty ? nil : Optional({ showsQuote = true }))
+                }
+
+                if appointment.plan != nil {
+                    Button {
+                        isEditing = true
+                    } label: {
+                        Label("Change this visit", systemImage: "pencil")
+                    }
+                    .buttonStyle(SimpleButtonStyle(kind: .plain))
+                }
+            }
+        }
+        .sheet(isPresented: $showsQuote) {
+            PlanQuoteSheet(title: appointment.title, quote: appointment.quote,
+                           source: AppointmentDetailViewModel(appointment: appointment, now: AppClock.now()).quoteSource, large: true)
+        }
+        .sheet(isPresented: $isEditing) {
+            if let plan = appointment.plan {
+                SimpleAppointmentEditView(appointment: appointment, plan: plan, now: AppClock.now()) {
+                    isRemoved = true
+                    dismiss()
+                }
             }
         }
     }
 }
 
-// MARK: - A plain list of sentences, page by page ("Bring", "Questions to ask")
+// MARK: - A short list of sentences ("Bring", "Questions to ask") in one card
 
-// one page of rows
-struct SimpleListPage: View {
+struct SimpleLinesCard: View {
     let title: String
     let items: [String]
     let symbol: String
 
-    // strings aren't Identifiable so wrap them
-    private struct Line: Identifiable {
-        let id: Int
-        let text: String
-    }
-
     var body: some View {
-        SimpleScreen(title: title) {
-            SimplePagedList(items: items.enumerated().map { Line(id: $0.offset, text: $0.element) }, perPage: 5) { line in
-                Label(line.text, systemImage: symbol)
-                    .font(.title3)
-                    .padding(16)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .cardStyle()
+        VStack(alignment: .leading, spacing: 12) {
+            Label(title, systemImage: symbol)
+                .font(.title3.bold())
+                .foregroundStyle(Color.ink)
+                .accessibilityAddTraits(.isHeader)
+            ForEach(Array(items.enumerated()), id: \.offset) { _, line in
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    Image(systemName: "circle.fill")
+                        .font(.system(size: 7))
+                        .foregroundStyle(Color.ink2)
+                        .accessibilityHidden(true)
+                    Text(line)
+                        .font(.title3)
+                        .foregroundStyle(Color.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
+        .padding(Spacing.insideCard)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cardStyle()
+        .accessibilityElement(children: .combine)
     }
 }
 
-#Preview(traits: .afterSurgerySample) {
-    NavigationStack { SimplePlanView() }
-}

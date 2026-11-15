@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+// classic ask tab
 struct AskView: View {
 
     @Query(sort: \CarePlan.createdAt, order: .reverse) private var plans: [CarePlan]
@@ -27,24 +28,12 @@ struct AskView: View {
         NavigationStack {
             let viewModel = AskViewModel(plan: plans.first, messages: messages, now: AppClock.now())
             content(viewModel)
-                .background(Color.screenBackground)
+                .remedyBackground()
                 .navigationTitle(viewModel.title)
-                .helpButtons()
-                .toolbar {
-                    if viewModel.canClear {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Menu {
-                                Button(viewModel.clearTitle, systemImage: "trash", role: .destructive) {
-                                    isConfirmingClear = true
-                                }
-                            } label: {
-                                Image(systemName: "ellipsis.circle")
-                            }
-                        }
-                    }
-                }
-                .confirmationDialog(viewModel.clearTitle, isPresented: $isConfirmingClear, titleVisibility: .visible) {
-                    Button(viewModel.clearTitle, role: .destructive) {
+                .navigationBarTitleDisplayMode(.large)
+                .helpButtons(showsSettings: false, clearChat: viewModel.canClear ? { isConfirmingClear = true } : nil)
+                .confirmationDialog(AskViewModel.clearChatTitle, isPresented: $isConfirmingClear, titleVisibility: .visible) {
+                    Button(AskViewModel.clearChatTitle, role: .destructive) {
                         Motion.perform(reduceMotion) { viewModel.clear(in: context) }
                     }
                 } message: {
@@ -56,46 +45,61 @@ struct AskView: View {
     @ViewBuilder
     private func content(_ viewModel: AskViewModel) -> some View {
         if !viewModel.hasPlan {
-            ContentUnavailableView(viewModel.emptyTitle, systemImage: "bubble.left.and.text.bubble.right",
-                                   description: Text(viewModel.emptyDetail))
+            HeroScreen(symbol: "questionmark.bubble", title: viewModel.emptyTitle, text: viewModel.emptyDetail) { EmptyView() }
         } else {
             ScrollViewReader { proxy in
                 ScrollView {
-                    VStack(spacing: Spacing.betweenCards) {
+                    VStack(alignment: .leading, spacing: Spacing.betweenCards) {
+                        DisclaimerBox()
                         if viewModel.showsIntro {
-                            AskIntroCard(viewModel: viewModel) { question in
-                                send(question, viewModel)
-                            }
-                            .transition(.opacity)
+                            HeroMessage(symbol: "questionmark.bubble", title: AskViewModel.heroTitle, text: AskViewModel.heroText)
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 12)
+                            AskExamples(viewModel: viewModel) { send($0, viewModel) }
+                                .transition(.opacity)
                         }
                         ForEach(viewModel.rows) { row in
-                            ChatBubble(row: row)
-                                .id(row.id)
-                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                            ChatBubble(row: row, question: viewModel.question(before: row), surgeonURL: viewModel.surgeonURL) {
+                                send($0, viewModel)
+                            }
+                            .id(row.id)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
                         }
                         if isThinking {
                             ThinkingBubble(text: viewModel.thinkingText)
                                 .transition(.opacity)
                         }
+                        // the end of the chat, so the newest line is never under the typing box
+                        Color.clear.frame(height: 1).id("chat-end")
                     }
                     .padding(.horizontal, Spacing.screenEdge)
                     .padding(.vertical, 8)
                 }
-                .defaultScrollAnchor(.bottom)
+                .defaultScrollAnchor(viewModel.showsIntro ? .top : .bottom)
+                .scrollBounceBehavior(.basedOnSize)
                 .scrollDismissesKeyboard(.interactively)
-                .onChange(of: viewModel.lastRowID) { _, newID in
-                    guard let newID else { return }
-                    Motion.perform(reduceMotion) { proxy.scrollTo(newID, anchor: .bottom) }
+                .onChange(of: viewModel.lastRowID) { _, _ in
+                    Motion.perform(reduceMotion) { proxy.scrollTo("chat-end", anchor: .bottom) }
+                }
+                .onChange(of: isThinking) { _, _ in
+                    Motion.perform(reduceMotion) { proxy.scrollTo("chat-end", anchor: .bottom) }
+                }
+                .onChange(of: isTyping) { _, typing in
+                    guard typing else { return }
+                    Motion.perform(reduceMotion) { proxy.scrollTo("chat-end", anchor: .bottom) }
                 }
             }
             // the typing box sits on top of the tab bar like Messages
-            .safeAreaInset(edge: .bottom) {
-                AskInputBar(text: $draft, isTyping: $isTyping, prompt: viewModel.prompt,
-                            sendLabel: viewModel.sendLabel, canSend: viewModel.canSend(draft) && !isThinking,
-                            footnote: viewModel.footnote) {
-                    send(draft, viewModel)
-                }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                askBar(viewModel)
             }
+        }
+    }
+
+    private func askBar(_ viewModel: AskViewModel) -> some View {
+        AskInputBar(text: $draft, isTyping: $isTyping, prompt: viewModel.prompt,
+                    sendLabel: viewModel.sendLabel, canSend: viewModel.canSend(draft) && !isThinking) {
+            send(draft, viewModel)
         }
     }
 
@@ -119,37 +123,30 @@ struct AskView: View {
     }
 }
 
-// MARK: - Intro + suggestion chips (only while the chat is empty)
+// MARK: - Invitation and examples (only while the chat is empty)
 
-// intro and suggestions
-struct AskIntroCard: View {
+// example questions that wrap onto more lines, never a sideways strip
+struct AskExamples: View {
     let viewModel: AskViewModel
     let onAsk: (String) -> Void
 
     var body: some View {
-        SectionCard(title: viewModel.introTitle, symbol: "text.bubble", collapsible: false, rememberAs: "ask.intro") {
-            VStack(alignment: .leading, spacing: 14) {
-                Text(viewModel.introDetail)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                // chips wrap onto new lines when they don't fit
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 8) { chips }
-                    VStack(alignment: .leading, spacing: 8) { chips }
+        FlowLayout(spacing: 8) {
+            ForEach(viewModel.examples, id: \.self) { question in
+                Button { onAsk(question) } label: {
+                    Text(question)
+                        .font(.body)
+                        .foregroundStyle(Color.ink)
+                        .padding(.horizontal, 14)
+                        .frame(minHeight: Spacing.minTarget)
+                        .background(Capsule().fill(Color.cardBackground))
                 }
+                .buttonStyle(.plain)
             }
-            .padding(.vertical, Spacing.rowVertical)
         }
-    }
-
-    private var chips: some View {
-        ForEach(viewModel.suggestions, id: \.self) { question in
-            Button(question) { onAsk(question) }
-                .buttonStyle(.glass)
-                .buttonBorderShape(.capsule)
-                .tint(Color.remedyTeal)
-                .font(.subheadline.weight(.medium))
-        }
+        .frame(maxWidth: .infinity, alignment: .center)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(AskViewModel.examplesTitle)
     }
 }
 
@@ -164,7 +161,7 @@ struct ThinkingBubble: View {
             HStack(spacing: 10) {
                 ProgressView()
                 Text(text)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.ink2)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
@@ -178,54 +175,73 @@ struct ThinkingBubble: View {
 // one question or answer
 struct ChatBubble: View {
     let row: ChatRow
+    var question: String = ""
+    var surgeonURL: URL? = nil
+    // asks again with the medicine they tapped
+    let onChoose: (String) -> Void
 
     var body: some View {
         if row.isFromPatient {
             HStack {
                 Spacer(minLength: 48)
                 Text(row.text)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.remedyTeal))
+                    .font(.body)
+                    .foregroundStyle(Color.onAccent)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(RoundedRectangle(cornerRadius: Radius.card, style: .continuous).fill(Color.accentFill))
             }
             .accessibilityLabel("You asked: \(row.text)")
+        } else if row.tone == .stop {
+            emergency
         } else {
-            HStack {
-                answer
-                Spacer(minLength: 24)
+            answer
+                .contextMenu {
+                    Button(AskViewModel.readAloudTitle, systemImage: "speaker.wave.2") { Speaker.toggle(row.text) }
+                }
+        }
+    }
+
+    // a warning sign: 911 first, the question never reached the AI
+    private var emergency: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ActionCard(style: .stop, eyebrow: AskViewModel.emergencyEyebrow, eyebrowSymbol: "exclamationmark.triangle",
+                       title: AskViewModel.emergencyHeading, text: AskViewModel.emergencyText(question: question)) {
+                VStack(spacing: 10) {
+                    EmergencyCallButton()
+                    if let surgeonURL {
+                        PhoneButton(title: AskViewModel.callSurgeonTitle, url: surgeonURL)
+                    }
+                }
             }
+            Text(AskViewModel.notSentFootnote)
+                .font(.footnote)
+                .foregroundStyle(Color.ink2)
+                .padding(.horizontal, 4)
         }
     }
 
     private var answer: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if row.symbol.isEmpty {
-                Text(row.text)
-            } else {
-                Label {
-                    Text(row.text)
-                } icon: {
-                    Image(systemName: row.symbol)
-                        .foregroundStyle(row.tone.color)
-                }
-            }
-
+            Text(row.text)
+                .font(.body)
+                .foregroundStyle(Color.ink)
+                .fixedSize(horizontal: false, vertical: true)
             if row.showsQuote {
-                Divider()
-                PaperQuoteCard(quote: row.quote, source: row.quoteSource)
+                PaperQuote(source: AskViewModel.pageSource(row.quoteSource), quote: "\u{201C}\(row.quote)\u{201D}")
+                    .background(RoundedRectangle(cornerRadius: Radius.card).fill(Color.screenBackground))
             }
-
-            if row.showsCall {
-                // 911 = big red button
-                CallButton(title: row.callTitle, phoneURL: row.callURL, prominent: row.tone == .stop)
-                    .tint(row.tone == .stop ? Color.red : Color.remedyTeal)
+            ForEach(row.choices, id: \.self) { name in
+                SecondaryButton(title: name) { onChoose(name) }
+            }
+            if row.showsCall, let url = row.callURL {
+                PhoneButton(title: AskViewModel.callOfficeTitle, url: url)
             }
         }
-        .font(.body)
         .padding(Spacing.insideCard)
-        .cardStyle(row.tone == .neutral ? Color.cardBackground : row.tone.color.opacity(0.12))
-        .controlSize(.large)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: Radius.card, style: .continuous).fill(Color.cardBackground))
+        .padding(.trailing, 24)
     }
 }
 
@@ -238,36 +254,47 @@ struct AskInputBar: View {
     let prompt: String
     let sendLabel: String
     let canSend: Bool
-    let footnote: String
     let onSend: () -> Void
 
     var body: some View {
         VStack(spacing: 6) {
-            HStack(alignment: .bottom, spacing: 8) {
+            HStack(alignment: .center, spacing: 8) {
                 TextField(prompt, text: $text, axis: .vertical)
+                    // plain so it is part of the glass bar, not a box inside it
+                    .textFieldStyle(.plain)
                     .lineLimit(1...4)
                     .focused(isTyping)
                     .submitLabel(.send)
+                    .textInputAutocapitalization(.sentences)
+                    .padding(.leading, 12)
                     .onSubmit { if canSend { onSend() } }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(Capsule().fill(Color.cardBackground))
+                    // a growing box can add a line break on Return, that means send
+                    .onChange(of: text) { _, new in
+                        let result = EditText.submitted(new)
+                        guard result.didSubmit else { return }
+                        text = result.text
+                        if canSend { onSend() }
+                    }
 
                 Button(action: onSend) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 34))
-                        .foregroundStyle(canSend ? Color.remedyTeal : Color.inactive)
+                    Image(systemName: "arrow.up")
+                        .font(.body.weight(.bold))
+                        .foregroundStyle(canSend ? Color.onAccent : Color.ink3)
+                        .frame(width: 40, height: 40)
+                        .background(Circle().fill(canSend ? Color.accentFill : Color.surface2))
+                        .frame(width: Spacing.tapMin, height: Spacing.tapMin)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
                 .disabled(!canSend)
                 .accessibilityLabel(sendLabel)
             }
-            Text(footnote)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+            .padding(.horizontal, 6)
+            .frame(minHeight: 56)
+            .glassStyle(cornerRadius: 28)
         }
         .padding(.horizontal, Spacing.screenEdge)
         .padding(.vertical, 8)
-        .background(.bar)
     }
 }
 

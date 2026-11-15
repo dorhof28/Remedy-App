@@ -8,12 +8,15 @@
 import Foundation
 import SwiftData
 
+// a person or office the help screen can call
 @Model
 final class CareContact {
 
     var name: String = ""
     var detail: String = ""
     var phone: String = ""
+    // optional, only when the papers list one
+    var email: String = ""
     var roleRaw: String = ContactRole.careTeam.rawValue
 
     // the plan it belongs to

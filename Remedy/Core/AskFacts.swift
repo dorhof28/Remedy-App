@@ -15,13 +15,14 @@ struct AskFact {
     let answer: AskAnswer
 }
 
+// the short list of plan facts the on-phone ai reads when the rules cannot answer
 enum AskFacts {
 
     // the on-phone AI has a small memory so the list is kept short
     static let maxFacts = 60
 
     // every fact from the confirmed plan
-    static func facts(plan: CarePlan, today: Int, now: Date) -> [AskFact] {
+    static func facts(plan: some PlanFacts, today: Int, now: Date) -> [AskFact] {
         let surgeryDate = plan.surgeryDate ?? now
         var result: [AskFact] = []
 
@@ -42,7 +43,7 @@ enum AskFacts {
             let status = PlanWording.ruleStatus(rule, today: today, surgeryDate: surgeryDate)
             let condition = rule.condition.isEmpty ? "" : " (\(rule.condition))"
             result.append(AskFact(
-                topic: "Rule: \(rule.title)\(condition). \(status.headline).",
+                topic: "Instruction: \(rule.title)\(condition). \(status.headline).",
                 answer: AskAnswer(kind: .fromPapers, text: status.answer, quote: rule.quote,
                                   quoteSource: PlainText.source(paper: rule.paper, page: rule.quotePage))))
         }

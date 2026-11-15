@@ -7,7 +7,8 @@
 
 import Foundation
 
-enum SurgeryDateFinder {
+// finds the surgery date on a paper from labels like date of surgery
+nonisolated enum SurgeryDateFinder {
 
     // phrases that say the date next to them is the surgery
     static let labels = [

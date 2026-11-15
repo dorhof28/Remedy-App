@@ -7,6 +7,7 @@
 
 import Foundation
 
+// reads the patient's record from the hospital's fhir server
 struct FHIRClient {
 
     let token: SMARTToken
@@ -24,7 +25,7 @@ struct FHIRClient {
 
     // the patients medicines
     func medicines() async throws -> [FHIRMedicationRequest] {
-        let found: [FHIRMedicationRequest] = try await search("MedicationRequest", ["patient": token.patientID])
+        let found: [FHIRMedicationRequest] = try await search("MedicationRequest", ["patient": token.patientID, "intent": "order"])   // Epic asks for the intent
         return found.filter { $0.resourceType == "MedicationRequest" }
     }
 
@@ -45,7 +46,51 @@ struct FHIRClient {
         return (found ?? []).filter { $0.resourceType == "Appointment" }
     }
 
+    // visit papers with readable words, newest first, a paper that fails to download is left out
+    func papers() async -> [RecordPaper] {
+        let found: [FHIRDocumentReference] = (try? await search("DocumentReference",
+                                                               ["patient": token.patientID, "category": "clinical-note"])) ?? []
+        var papers: [RecordPaper] = []
+        for document in found where document.resourceType == "DocumentReference" && document.status != "entered-in-error" {
+            guard papers.count < maxPapers,
+                  let attachment = document.content?.compactMap(\.attachment).first(where: { FHIRMapper.isReadable($0) }),
+                  let text = await words(in: attachment),
+                  let paper = FHIRMapper.paper(document, text: text) else { continue }
+            papers.append(paper)
+        }
+        return papers.sorted { ($0.date ?? .distantPast) > ($1.date ?? .distantPast) }
+    }
+
     // MARK: - Private
+
+    // a long record has hundreds of notes, only the latest few matter for a surgery
+    private let maxPapers = 10
+
+    // inline words or the downloaded file, html turned into plain text
+    private func words(in attachment: FHIRDocumentReference.Attachment) async -> String? {
+        let raw: Data?
+        if let inline = attachment.data {
+            raw = Data(base64Encoded: inline)
+        } else if let link = attachment.url {
+            // a full link as is, "Binary/abc" under the fhir base
+            guard let url = link.hasPrefix("http") ? URL(string: link) : EpicConfig.fhirBase.appending(path: link) else { return nil }
+            raw = try? await download(url, accept: attachment.contentType ?? "text/plain")
+        } else {
+            raw = nil
+        }
+        guard let raw, let text = String(data: raw, encoding: .utf8) else { return nil }
+        return (attachment.contentType ?? "").contains("html") ? PlainText.fromHTML(text) : text
+    }
+
+    // downloads a note's file with the token
+    private func download(_ url: URL, accept: String) async throws -> Data {
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue(accept, forHTTPHeaderField: "Accept")
+        let (data, response) = try await Self.session.data(for: request)
+        guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw EpicError.couldNotReach }
+        return data
+    }
 
     // one search following "next" pages
     private func search<R: Decodable>(_ type: String, _ query: [String: String]) async throws -> [R] {
@@ -64,6 +109,7 @@ struct FHIRClient {
         return results
     }
 
+    // one authorized get, decoded
     private func get<T: Decodable>(_ url: URL) async throws -> T {
         var request = URLRequest(url: url)
         request.setValue("Bearer \(token.accessToken)", forHTTPHeaderField: "Authorization")

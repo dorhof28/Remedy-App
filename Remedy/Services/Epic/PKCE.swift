@@ -9,11 +9,12 @@ import CryptoKit
 import Foundation
 import Security
 
+// the one time secret that proves the token request comes from this app
 struct PKCE {
     let verifier: String
     let challenge: String
 
-    // a fresh random one for each sign-in
+    // a new random one for each sign-in
     init() {
         var bytes = [UInt8](repeating: 0, count: 32)
         _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)

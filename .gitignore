@@ -5,3 +5,12 @@ xcuserdata/
 # local backups and drafts not part of the app
 Backup-before-comments/
 WidgetDrafts/
+
+# build output, sample scratch, editor and temp leftovers
+DemoVideo/.build/
+SamplePapers/print-check/
+*.tmp
+*.bak
+*.orig
+*~
+.*.swp

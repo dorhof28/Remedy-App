@@ -1,0 +1,184 @@
+{
+  "patient": "Lena Ortiz",
+  "procedure": "Gallbladder removal",
+  "surgeryDate": "2026-12-22",
+  "papers": [
+    {
+      "file": "B1-surgeon-sheet",
+      "source": "surgeryTeam",
+      "field": null,
+      "doctor": "Dr. Hannah Cole",
+      "printedDate": "2026-11-10"
+    },
+    {
+      "file": "B2-blood-letter",
+      "source": "specialist",
+      "field": "blood",
+      "doctor": "Dr. Victor Osei",
+      "printedDate": "2026-11-14"
+    },
+    {
+      "file": "B3-diabetes-letter",
+      "source": "specialist",
+      "field": "diabetes",
+      "doctor": "Dr. Mei Tanaka",
+      "printedDate": "2026-12-16"
+    },
+    {
+      "file": "B4-discharge",
+      "source": "surgeryTeam",
+      "field": null,
+      "doctor": "Northfield general surgery team",
+      "printedDate": "2026-12-23"
+    }
+  ],
+  "record": "records/lena-record.json",
+  "medicines": [
+    {
+      "paper": "B1",
+      "name": "Apixaban",
+      "otherNames": [
+        "eliquis"
+      ],
+      "action": "stop",
+      "startDay": -2,
+      "endDay": null,
+      "strength": "5 mg",
+      "quote": "Stop apixaban (Eliquis) 5 mg 2 days before surgery."
+    },
+    {
+      "paper": "B1",
+      "name": "Metformin",
+      "otherNames": [],
+      "action": "stop",
+      "startDay": 0,
+      "endDay": 0,
+      "strength": "500 mg",
+      "quote": "Do not take metformin 500 mg the morning of surgery."
+    },
+    {
+      "paper": "B1",
+      "name": "Atorvastatin",
+      "otherNames": [
+        "lipitor"
+      ],
+      "action": "okToTake",
+      "startDay": null,
+      "endDay": null,
+      "strength": "20 mg",
+      "quote": "Continue atorvastatin 20 mg at bedtime."
+    },
+    {
+      "paper": "B2",
+      "name": "Apixaban",
+      "otherNames": [
+        "eliquis"
+      ],
+      "action": "stop",
+      "startDay": -3,
+      "endDay": null,
+      "strength": "",
+      "quote": "Stop Eliquis 3 days before surgery."
+    },
+    {
+      "paper": "B3",
+      "name": "Metformin",
+      "otherNames": [],
+      "action": "stop",
+      "startDay": -2,
+      "endDay": null,
+      "strength": "",
+      "quote": "Stop metformin 48 hours before surgery."
+    },
+    {
+      "paper": "B4",
+      "name": "Oxycodone",
+      "otherNames": [],
+      "action": "takeAsNeeded",
+      "startDay": 0,
+      "endDay": null,
+      "strength": "5 mg",
+      "quote": "Oxycodone 5 mg: 1 tablet every 4 hours as needed for pain. No more than 6 a day."
+    },
+    {
+      "paper": "B4",
+      "name": "Acetaminophen",
+      "otherNames": [
+        "tylenol"
+      ],
+      "action": "take",
+      "startDay": 0,
+      "endDay": null,
+      "strength": "500 mg",
+      "quote": "Acetaminophen 500 mg: 2 tablets every 6 hours."
+    },
+    {
+      "paper": "B4",
+      "name": "Apixaban",
+      "otherNames": [
+        "eliquis"
+      ],
+      "action": "okToTake",
+      "startDay": 2,
+      "endDay": null,
+      "strength": "5 mg",
+      "quote": "Restart Eliquis 5 mg twice daily on December 24."
+    },
+    {
+      "paper": "B4",
+      "name": "Metformin",
+      "otherNames": [],
+      "action": "okToTake",
+      "startDay": 1,
+      "endDay": null,
+      "strength": "",
+      "quote": "Restart metformin when you are eating normally."
+    }
+  ],
+  "appointments": [
+    {
+      "paper": "B4",
+      "title": "Visit with Dr. Cole",
+      "date": "2027-01-05T10:15",
+      "quote": "Visit with Dr. Cole on January 5, 2027 at 10:15 AM."
+    }
+  ],
+  "expectedChecks": [
+    {
+      "medicine": "Apixaban",
+      "color": "blue",
+      "why": "surgery team paper covers it",
+      "winner": "B1"
+    },
+    {
+      "medicine": "Metformin",
+      "color": "blue",
+      "why": "surgery team paper covers it",
+      "winner": "B1"
+    }
+  ],
+  "afterDischarge": {
+    "whatChanged": {
+      "restarted": [
+        "Apixaban",
+        "Metformin"
+      ],
+      "new": [
+        "Oxycodone",
+        "Acetaminophen"
+      ],
+      "notMentioned": [
+        "Atorvastatin"
+      ]
+    },
+    "recordGap": {
+      "onRecordNotOnAnyPaper": [
+        "Omeprazole"
+      ]
+    },
+    "firstHomeDose": {
+      "Oxycodone": "2026-12-23T17:40",
+      "Acetaminophen": "2026-12-23T17:00"
+    }
+  }
+}

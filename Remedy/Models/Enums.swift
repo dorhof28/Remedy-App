@@ -12,6 +12,23 @@ enum PaperKind: String, Codable, CaseIterable {
     case beforeSurgery
     case afterSurgery
 }
+// who gave the patient a paper
+enum PaperSource: String, Codable, CaseIterable {
+    case surgeryTeam        // surgeon's office, hospital, pre-admission testing, anesthesia
+    case specialist
+    case primaryCare
+    case hospitalRecord     // MyChart or Health list
+    case other
+}
+// what a specialist looks after, only used when the source is specialist
+enum PaperField: String, Codable, CaseIterable {
+    case heart
+    case kidney
+    case blood
+    case diabetes
+    case lungs
+    case other
+}
 // where the plan came from
 enum PlanSource: String, Codable, CaseIterable {
     case scan

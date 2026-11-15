@@ -25,6 +25,53 @@ nonisolated struct WidgetEntryData: Codable, Hashable {
     var upNext: [WidgetLine]? = nil     // the next few things today
     var takenText: String? = nil        // "2 of 5 taken"
     var takenFraction: Double? = nil
+    var nextEvent: WidgetLine? = nil    // next appointment, shown when no dose is coming
+}
+
+// what kind of top line the entry holds, read from the eyebrow the Today card wrote
+nonisolated enum WidgetKind {
+    case due, missed, next, allDone, other
+}
+
+nonisolated extension WidgetEntryData {
+
+    var kind: WidgetKind {
+        if eyebrow.hasPrefix("Due now") { return .due }
+        if eyebrow.hasPrefix("Missed") { return .missed }
+        if eyebrow.hasPrefix("Next") { return .next }
+        if title == "All done for today" || title == "No set-time medicines today" { return .allDone }
+        return .other
+    }
+
+    // the clock time inside the eyebrow like 2:00 PM
+    var timeText: String? {
+        let parts = eyebrow.components(separatedBy: " \u{00B7} ")
+        return parts.count > 1 ? parts.last : nil
+    }
+
+    // one short line for the inline lock screen widget
+    // next dose first then next event, stop-taking items are never the headline
+    var inlineText: String {
+        func joined(_ words: String, _ time: String?) -> String {
+            time.map { "\(words) \($0)" } ?? words
+        }
+        switch kind {
+        case .due: return joined("Take \(title)", timeText)
+        case .missed: return joined("Missed: \(title)", timeText)
+        case .next: return joined("Next: \(title)", timeText)
+        case .allDone, .other:
+            break
+        }
+        if let line = upNext?.first(where: { $0.symbol == "pills.fill" }) {
+            return "Next: \(line.title) \(line.time)"
+        }
+        if let event = nextEvent { return "\(event.title) \(event.time)" }
+        if title.hasPrefix("Today is your surgery") { return "Surgery day today" }
+        if let line = upNext?.first(where: { $0.symbol != "nosign" && !$0.title.lowercased().hasPrefix("stop") }) {
+            return "\(line.time): \(line.title)"
+        }
+        return kind == .allDone ? "Medicines done today" : "Open Remedy for today"
+    }
 }
 
 // one key day for the journey widget
@@ -47,6 +94,7 @@ nonisolated struct WidgetJourney: Codable, Hashable {
     let stops: [WidgetStop]
 }
 
+// the snapshot saved in the app group for the widget to read
 nonisolated enum WidgetSnapshot {
 
     // must match the App Group added to both targets in Signing & Capabilities

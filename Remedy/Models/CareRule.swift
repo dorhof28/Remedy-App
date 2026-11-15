@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+// a do or don't from the papers, like no driving, with the days it applies
 @Model
 final class CareRule {
 
@@ -25,6 +26,7 @@ final class CareRule {
     var paperRaw: String = PaperKind.afterSurgery.rawValue
 
     // the plan it belongs to
+    var paperID: UUID?      // the Paper record it came from
     var plan: CarePlan?
 
     init(title: String, isAllowed: Bool, paper: PaperKind, quote: String) {

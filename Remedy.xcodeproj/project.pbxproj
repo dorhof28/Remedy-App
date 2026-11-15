@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00121C93309D7F2A00F1D538 /* ClaudeForFoundationModels in Frameworks */ = {isa = PBXBuildFile; productRef = 00121C92309D7F2A00F1D538 /* ClaudeForFoundationModels */; };
+		00121C95309D7F3900F1D538 /* FoundationModelsUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = 00121C94309D7F3900F1D538 /* FoundationModelsUtilities */; };
+		00121CA0309D8B2500F1D538 /* MLXFoundationModels in Frameworks */ = {isa = PBXBuildFile; productRef = 00121C9F309D8B2500F1D538 /* MLXFoundationModels */; };
+		00121CA2309D8B2500F1D538 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 00121CA1309D8B2500F1D538 /* MLXLLM */; };
+		00121CB1309D8B2500F1D538 /* MLXVLM in Frameworks */ = {isa = PBXBuildFile; productRef = 00121CB2309D8B2500F1D538 /* MLXVLM */; };
+		00121CC1309D9A0000F1D538 /* Tokenizers in Frameworks */ = {isa = PBXBuildFile; productRef = 00121CC2309D9A0000F1D538 /* Tokenizers */; };
+		00121CC3309D9A0000F1D538 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 00121CC4309D9A0000F1D538 /* MLXLMCommon */; };
 		00BF98C1308E9D5E0043ED13 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00BF98C0308E9D5E0043ED13 /* WidgetKit.framework */; };
 		00BF98C3308E9D5E0043ED13 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00BF98C2308E9D5E0043ED13 /* SwiftUI.framework */; };
 		00BF98D0308E9D5F0043ED13 /* RemedyWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 00BF98BE308E9D5E0043ED13 /* RemedyWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -51,9 +58,17 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		001229BA309E780B00F1D538 /* Exceptions for "Remedy" folder in "Remedy" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 00F12B5B308D7E9700555354 /* Remedy */;
+		};
 		002C6CFA308E9E760042579C /* Exceptions for "Remedy" folder in "RemedyWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Services/LiveActivity/RemedyActivity.swift,
 				Services/Widget/WidgetSnapshot.swift,
 			);
 			target = 00BF98BD308E9D5E0043ED13 /* RemedyWidgetExtension */;
@@ -79,6 +94,7 @@
 		00F12B5E308D7E9700555354 /* Remedy */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				001229BA309E780B00F1D538 /* Exceptions for "Remedy" folder in "Remedy" target */,
 				002C6CFA308E9E760042579C /* Exceptions for "Remedy" folder in "RemedyWidgetExtension" target */,
 			);
 			path = Remedy;
@@ -102,6 +118,13 @@
 		00F12B59308D7E9700555354 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				00121CA2309D8B2500F1D538 /* MLXLLM in Frameworks */,
+				00121CB1309D8B2500F1D538 /* MLXVLM in Frameworks */,
+				00121C95309D7F3900F1D538 /* FoundationModelsUtilities in Frameworks */,
+				00121CA0309D8B2500F1D538 /* MLXFoundationModels in Frameworks */,
+				00121C93309D7F2A00F1D538 /* ClaudeForFoundationModels in Frameworks */,
+				00121CC1309D9A0000F1D538 /* Tokenizers in Frameworks */,
+				00121CC3309D9A0000F1D538 /* MLXLMCommon in Frameworks */,
 			);
 		};
 		00F12C05308DA00000555354 /* Frameworks */ = {
@@ -182,6 +205,15 @@
 				00F12B5E308D7E9700555354 /* Remedy */,
 			);
 			name = Remedy;
+			packageProductDependencies = (
+				00121C92309D7F2A00F1D538 /* ClaudeForFoundationModels */,
+				00121C94309D7F3900F1D538 /* FoundationModelsUtilities */,
+				00121C9F309D8B2500F1D538 /* MLXFoundationModels */,
+				00121CA1309D8B2500F1D538 /* MLXLLM */,
+				00121CB2309D8B2500F1D538 /* MLXVLM */,
+				00121CC2309D9A0000F1D538 /* Tokenizers */,
+				00121CC4309D9A0000F1D538 /* MLXLMCommon */,
+			);
 			productName = Remedy;
 			productReference = 00F12B5C308D7E9700555354 /* Remedy.app */;
 			productType = "com.apple.product-type.application";
@@ -215,7 +247,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2710;
-				LastUpgradeCheck = 2710;
+				LastUpgradeCheck = 2720;
 				TargetAttributes = {
 					00BF98BD308E9D5E0043ED13 = {
 						CreatedOnToolsVersion = 27.1;
@@ -238,6 +270,12 @@
 			);
 			mainGroup = 00F12B53308D7E9700555354;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				00121C82309D775400F1D538 /* XCRemoteSwiftPackageReference "foundation-models-utilities" */,
+				00121C83309D776900F1D538 /* XCRemoteSwiftPackageReference "ClaudeForFoundationModels" */,
+				00121C9E309D8B2500F1D538 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */,
+				00121CC0309D9A0000F1D538 /* XCRemoteSwiftPackageReference "swift-transformers" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 00F12B5D308D7E9700555354 /* Products */;
 			projectDirPath = "";
@@ -423,6 +461,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -480,6 +519,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -496,11 +536,16 @@
 				DEVELOPMENT_TEAM = 39N8UH3382;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Remedy/Info.plist;
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Remedy keeps the Remedy calendar it makes up to date when your surgery date moves. It does not read your other calendars.";
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Remedy adds your visits to your calendar.";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Remedy uses the camera to scan your surgery papers.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Remedy uses the camera to scan your surgery papers and to take photos that track your recovery.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Remedy uses Face ID to keep your plan private when you turn on the lock.";
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Remedy reads the medicines from your hospital records so you can check them and get reminders.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Remedy reads your step count to show your walking next to your daily goals.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Remedy can send your blacked-out papers to an AI running on your own Mac, only if you choose that.";
 				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "Remedy adds the to-dos from your surgery papers to a Remedy list in Reminders.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -535,11 +580,16 @@
 				DEVELOPMENT_TEAM = 39N8UH3382;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Remedy/Info.plist;
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Remedy keeps the Remedy calendar it makes up to date when your surgery date moves. It does not read your other calendars.";
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Remedy adds your visits to your calendar.";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Remedy uses the camera to scan your surgery papers.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Remedy uses the camera to scan your surgery papers and to take photos that track your recovery.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Remedy uses Face ID to keep your plan private when you turn on the lock.";
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Remedy reads the medicines from your hospital records so you can check them and get reminders.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Remedy reads your step count to show your walking next to your daily goals.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Remedy can send your blacked-out papers to an AI running on your own Mac, only if you choose that.";
 				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "Remedy adds the to-dos from your surgery papers to a Remedy list in Reminders.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -645,6 +695,79 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		00121C82309D775400F1D538 /* XCRemoteSwiftPackageReference "foundation-models-utilities" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/foundation-models-utilities";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.0;
+			};
+		};
+		00121C83309D776900F1D538 /* XCRemoteSwiftPackageReference "ClaudeForFoundationModels" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/anthropics/ClaudeForFoundationModels";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.2.3;
+			};
+		};
+		00121C9E309D8B2500F1D538 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ml-explore/mlx-swift-lm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.32.3;
+			};
+		};
+		00121CC0309D9A0000F1D538 /* XCRemoteSwiftPackageReference "swift-transformers" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/huggingface/swift-transformers";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.5;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		00121C92309D7F2A00F1D538 /* ClaudeForFoundationModels */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 00121C83309D776900F1D538 /* XCRemoteSwiftPackageReference "ClaudeForFoundationModels" */;
+			productName = ClaudeForFoundationModels;
+		};
+		00121C94309D7F3900F1D538 /* FoundationModelsUtilities */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 00121C82309D775400F1D538 /* XCRemoteSwiftPackageReference "foundation-models-utilities" */;
+			productName = FoundationModelsUtilities;
+		};
+		00121C9F309D8B2500F1D538 /* MLXFoundationModels */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 00121C9E309D8B2500F1D538 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXFoundationModels;
+		};
+		00121CA1309D8B2500F1D538 /* MLXLLM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 00121C9E309D8B2500F1D538 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXLLM;
+		};
+		00121CB2309D8B2500F1D538 /* MLXVLM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 00121C9E309D8B2500F1D538 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXVLM;
+		};
+		00121CC2309D9A0000F1D538 /* Tokenizers */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 00121CC0309D9A0000F1D538 /* XCRemoteSwiftPackageReference "swift-transformers" */;
+			productName = Tokenizers;
+		};
+		00121CC4309D9A0000F1D538 /* MLXLMCommon */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 00121C9E309D8B2500F1D538 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXLMCommon;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 00F12B54308D7E9700555354 /* Project object */;
 	validationLevel = 1;

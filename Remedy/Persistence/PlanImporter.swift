@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+// saves a confirmed draft into a new plan or joins it to the current one
 enum PlanImporter {
 
     // saves the draft and returns the plan it went into
@@ -15,9 +16,24 @@ enum PlanImporter {
     static func save(_ draft: DraftPlan, in context: ModelContext) -> CarePlan {
         let plan = planToFill(for: draft, in: context)
         let paper = draft.paper
+        // each item gets before or after from its own day so a paper with both parts is sorted line by line
+
+        // one record per set of papers
+        let record = Paper(kind: paper, source: draft.paperSource, field: draft.paperField)
+        let name = draft.doctorName.trimmingCharacters(in: .whitespacesAndNewlines)
+        record.doctorName = name.isEmpty ? nil : name
+        record.printedDate = draft.printedDate
+        let hospital = draft.hospitalName.trimmingCharacters(in: .whitespacesAndNewlines)
+        record.hospitalName = hospital.isEmpty ? nil : hospital
+        record.otherKindText = draft.otherKindText
+        context.insert(record)
+        record.plan = plan
+        let paperID = record.id
+        let pageText = draft.pageText
 
         for item in draft.medicines where item.isConfirmed {
-            let medicine = MedicineInstruction(name: item.name, action: item.action, paper: paper, quote: item.quote)
+            let medicine = MedicineInstruction(name: item.name, action: item.action,
+                                               paper: PaperClues.kind(forDay: item.startDay, fallback: paper), quote: item.quote)
             medicine.alsoKnownAs = item.alsoKnownAs.map { $0.lowercased() }
             medicine.isGroup = item.isGroup
             medicine.startDay = item.startDay
@@ -31,26 +47,38 @@ enum PlanImporter {
             medicine.maxPerDay = item.maxPerDay
             medicine.reason = item.reason
             medicine.exception = item.exception
+            // only a clock time really on the page on the printed day, am or pm from the page or the patient
+            medicine.lastGivenAt = LastGivenParser.time(from: item.lastGivenText, pageText: pageText, printedDate: draft.printedDate,
+                                                        medicineNames: [item.name] + item.alsoKnownAs, picked: item.lastGivenPick)
+            // only a yes from the patient marks a dose as given, a slot the paper time already fills wins
+            if item.hospitalDoseAnswer == true {
+                medicine.hospitalDoseAt = item.hospitalDoseAt
+            }
             medicine.quotePage = item.quotePage
             medicine.isConfirmed = true
             context.insert(medicine)
+            medicine.paperID = paperID
             medicine.plan = plan
         }
 
         for item in draft.rules where item.isConfirmed {
-            let rule = CareRule(title: item.title, isAllowed: item.isAllowed, paper: paper, quote: item.quote)
+            let rule = CareRule(title: item.title, isAllowed: item.isAllowed,
+                                paper: PaperClues.kind(forDay: item.startDay, fallback: paper), quote: item.quote)
             rule.condition = item.condition
             rule.startDay = item.startDay
             rule.endDay = item.endDay
             rule.quotePage = item.quotePage
             context.insert(rule)
+            rule.paperID = paperID
             rule.plan = plan
         }
 
         for item in draft.tasks where item.isConfirmed {
-            let task = CareTask(title: item.title, dueDay: item.dueDay, paper: paper, quote: item.quote)
+            let task = CareTask(title: item.title, dueDay: item.dueDay,
+                                paper: PaperClues.kind(forDay: item.dueDay, fallback: paper), quote: item.quote)
             task.quotePage = item.quotePage
             context.insert(task)
+            task.paperID = paperID
             task.plan = plan
         }
 
@@ -64,6 +92,7 @@ enum PlanImporter {
             appointment.bring = item.bring
             appointment.quotePage = item.quotePage
             context.insert(appointment)
+            appointment.paperID = paperID
             appointment.plan = plan
         }
 
@@ -80,6 +109,7 @@ enum PlanImporter {
 
         for item in draft.contacts {
             let contact = CareContact(name: item.name, detail: item.detail, phone: item.phone, role: item.role)
+            contact.email = item.email
             context.insert(contact)
             contact.plan = plan
         }
@@ -87,6 +117,7 @@ enum PlanImporter {
         for page in draft.pages {
             let document = SourceDocument(pageNumber: page.pageNumber, paper: paper, redactedText: page.redactedText)
             context.insert(document)
+            document.paperID = paperID
             document.plan = plan
         }
 
@@ -101,6 +132,7 @@ enum PlanImporter {
             plan = existing
         } else {
             plan = CarePlan(procedure: draft.procedure, source: draft.source)
+            plan.isSample = draft.isSample
             context.insert(plan)
         }
         if plan.procedure.isEmpty {

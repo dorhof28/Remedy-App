@@ -7,6 +7,7 @@
 
 import Foundation
 
+// the epic app registration and sandbox address
 enum EpicConfig {
 
     // from fhir.epic.com
@@ -18,8 +19,8 @@ enum EpicConfig {
     static let callbackScheme = "remedy"
     static let redirectURI = "remedy://oauth/callback"
 
-    // only what we need medicines and visits
-    static let scopes = "openid fhirUser launch/patient patient/MedicationRequest.read patient/Appointment.read"
+    // only what we need medicines, visits and visit papers
+    static let scopes = "openid fhirUser launch/patient patient/MedicationRequest.read patient/Appointment.read patient/DocumentReference.read patient/Binary.read"
 
     // the MyChart button only shows once the client ID is filled in
     static var isSetUp: Bool { !clientID.hasPrefix("PASTE") && !clientID.isEmpty }

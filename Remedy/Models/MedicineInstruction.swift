@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+// one medicine line from one paper: take, stop, as needed or ok to take, with its days and quote
 @Model
 final class MedicineInstruction {
 
@@ -32,7 +33,11 @@ final class MedicineInstruction {
     var onlyIf: String = ""
     var minHoursBetween: Int?
     var maxPerDay: Int?
-    
+    // the hospital's last dose from the discharge paper
+    var lastGivenAt: Date?
+    // the paper's dose time the patient said the hospital already gave, when the paper's time was unreadable
+    var hospitalDoseAt: Date?
+
     var reason: String = ""
     var exception: String = ""
     
@@ -48,8 +53,16 @@ final class MedicineInstruction {
 
     // when the patient tapped "I've put them away" for a stop
     var putAwayAt: Date?
+    // the optional "did you take any today" answer on a stop day: yes or no
+    var lastTakenAnswer: String?
+    var lastTakenAt: Date?
     var createdAt: Date = Date()
+    // set when the patient changes it by hand, so the detail says "Changed by you"
+    var changedByYouAt: Date?
+    // "Restarted, said OK by surgeon's office, Mon, Nov 23" after a restart (screen 36)
+    var restartNote: String?
 
+    var paperID: UUID?      // the Paper record it came from
     var plan: CarePlan?
 
     // every time sm took or skipped a dose of this

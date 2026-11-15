@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+// a visit from the papers or added by the patient, with what to bring and ask
 @Model
 final class Appointment {
 
@@ -27,6 +28,8 @@ final class Appointment {
     var questions: [String] = []
 
     var isInCalendar: Bool = false
+    // the calendar event made for this visit, so a change can move it
+    var calendarEventID: String?
 
     // what paper info comes from
     var quote: String = ""
@@ -34,6 +37,7 @@ final class Appointment {
     var paperRaw: String = PaperKind.afterSurgery.rawValue
 
     // plan it belongs to
+    var paperID: UUID?      // the Paper record it came from
     var plan: CarePlan?
 
     init(title: String, date: Date, paper: PaperKind, quote: String) {

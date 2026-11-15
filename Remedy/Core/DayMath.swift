@@ -7,7 +7,8 @@
 
 import Foundation
 
-enum DayMath {
+// plan days are counted from surgery: day 0 is surgery, negative is before
+nonisolated enum DayMath {
 
     static var calendar: Calendar { Calendar.current }
 
@@ -88,13 +89,6 @@ enum DayMath {
         if day == 1 { return "the day after surgery" }
         if day < 0 { return "\(-day) days before surgery" }
         return "\(day) days after surgery"
-    }
-
-    // day number with a + or -
-    static func signedDay(_ day: Int) -> String {
-        if day < 0 { return "\u{2212}\(-day)" }
-        if day > 0 { return "+\(day)" }
-        return "0"
     }
 
     // minutes to 2:00 PM

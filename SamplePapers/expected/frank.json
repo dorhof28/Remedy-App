@@ -1,0 +1,180 @@
+{
+  "patient": "Frank Delgado",
+  "procedure": "Hernia repair",
+  "surgeryDate": "2027-01-14",
+  "papers": [
+    {
+      "file": "C1-heart-letter",
+      "source": "specialist",
+      "field": "heart",
+      "doctor": "Dr. Samuel Okafor",
+      "printedDate": "2026-12-28"
+    },
+    {
+      "file": "C2-hospital-handout",
+      "source": "surgeryTeam",
+      "field": null,
+      "doctor": "Northfield surgery team",
+      "printedDate": "2027-01-04"
+    },
+    {
+      "file": "C3-primary-note",
+      "source": "primaryCare",
+      "field": null,
+      "doctor": "Dr. Rachel Kim",
+      "printedDate": null
+    }
+  ],
+  "medicines": [
+    {
+      "paper": "C1",
+      "name": "Clopidogrel",
+      "otherNames": [
+        "plavix"
+      ],
+      "action": "okToTake",
+      "startDay": null,
+      "endDay": null,
+      "strength": "75 mg",
+      "quote": "You have a heart stent. Do not stop clopidogrel (Plavix) 75 mg for any reason unless I tell you."
+    },
+    {
+      "paper": "C1",
+      "name": "Aspirin",
+      "otherNames": [
+        "baby aspirin"
+      ],
+      "action": "okToTake",
+      "startDay": null,
+      "endDay": null,
+      "strength": "81 mg",
+      "quote": "Continue aspirin 81 mg."
+    },
+    {
+      "paper": "C2",
+      "name": "Aspirin",
+      "otherNames": [
+        "baby aspirin"
+      ],
+      "action": "stop",
+      "startDay": -7,
+      "endDay": null,
+      "strength": "",
+      "quote": "Stop all blood thinners 7 days before surgery, including aspirin, clopidogrel (Plavix), warfarin (Coumadin), apixaban (Eliquis)."
+    },
+    {
+      "paper": "C2",
+      "name": "Clopidogrel",
+      "otherNames": [
+        "plavix"
+      ],
+      "action": "stop",
+      "startDay": -7,
+      "endDay": null,
+      "strength": "",
+      "quote": "Stop all blood thinners 7 days before surgery, including aspirin, clopidogrel (Plavix), warfarin (Coumadin), apixaban (Eliquis)."
+    },
+    {
+      "paper": "C2",
+      "name": "Warfarin",
+      "otherNames": [
+        "coumadin"
+      ],
+      "action": "stop",
+      "startDay": -7,
+      "endDay": null,
+      "strength": "",
+      "quote": "Stop all blood thinners 7 days before surgery, including aspirin, clopidogrel (Plavix), warfarin (Coumadin), apixaban (Eliquis)."
+    },
+    {
+      "paper": "C2",
+      "name": "Apixaban",
+      "otherNames": [
+        "eliquis"
+      ],
+      "action": "stop",
+      "startDay": -7,
+      "endDay": null,
+      "strength": "",
+      "quote": "Stop all blood thinners 7 days before surgery, including aspirin, clopidogrel (Plavix), warfarin (Coumadin), apixaban (Eliquis)."
+    },
+    {
+      "paper": "C2",
+      "name": "Vitamins and supplements",
+      "otherNames": [
+        "vitamins",
+        "supplements"
+      ],
+      "action": "stop",
+      "startDay": -7,
+      "endDay": null,
+      "strength": "",
+      "quote": "Stop vitamins and supplements 7 days before surgery."
+    },
+    {
+      "paper": "C2",
+      "name": "Ibuprofen",
+      "otherNames": [
+        "advil",
+        "motrin"
+      ],
+      "action": "okToTake",
+      "startDay": null,
+      "endDay": -3,
+      "strength": "",
+      "quote": "You may take ibuprofen until 3 days before surgery."
+    },
+    {
+      "paper": "C3",
+      "name": "Ibuprofen",
+      "otherNames": [
+        "advil",
+        "motrin"
+      ],
+      "action": "stop",
+      "startDay": null,
+      "endDay": null,
+      "strength": "",
+      "quote": "Stop ibuprofen now."
+    },
+    {
+      "paper": "C3",
+      "name": "Acetaminophen",
+      "otherNames": [
+        "tylenol"
+      ],
+      "action": "takeAsNeeded",
+      "startDay": null,
+      "endDay": null,
+      "strength": "500 mg",
+      "quote": "Use acetaminophen 500 mg up to 3 times a day for knee pain."
+    }
+  ],
+  "expectedChecks": [
+    {
+      "medicine": "Clopidogrel",
+      "color": "red",
+      "why": "generic newer line never beats a specific one",
+      "askByDate": "2027-01-06",
+      "askByDay": -8
+    },
+    {
+      "medicine": "Aspirin",
+      "color": "red",
+      "why": "generic newer line never beats a specific one",
+      "askByDate": "2027-01-06",
+      "askByDay": -8
+    },
+    {
+      "medicine": "Ibuprofen",
+      "color": "blue",
+      "why": "surgery team paper covers it",
+      "winner": "C2"
+    },
+    {
+      "medicine": "Acetaminophen",
+      "color": "blue",
+      "why": "surgery papers do not mention it"
+    }
+  ]
+}

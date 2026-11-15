@@ -22,15 +22,14 @@ nonisolated struct PromptExample: Decodable {
 
     // what the tests check
     nonisolated struct Checks: Decodable {
-        let stopDays: [String: Int]?    // medicine to the day it stops
         let surgeryDate: String?        // yyyy-MM-dd
-        let noStopDay: [String]?        // written as a date so no day number
         let names: [String]?            // must be hidden
     }
 
     var isChecked: Bool { !checkedBy.isEmpty }
 }
 
+// the example papers and answers in the prompt
 enum PromptExamples {
 
     // more examples means a longer prompt so only a few go in

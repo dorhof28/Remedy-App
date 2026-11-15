@@ -7,6 +7,7 @@
 
 import Foundation
 
+// a made up mychart record in real fhir json, run through the real mapper
 enum SampleFHIR {
 
     // runs the made up record through the same mapper as the real one
@@ -72,6 +73,37 @@ enum SampleFHIR {
         [
           {"resourceType": "Appointment", "status": "booked", "start": "\(iso(5, hour: 7, from: now))",
            "serviceType": [{"text": "Right knee replacement"}]}
+        ]
+        """
+    }
+
+    // two made up visit notes in the same shape mychart sends, html like the real ones
+    static func papers(now: Date) -> [RecordPaper] {
+        let notes = (try? JSONDecoder().decode([FHIRDocumentReference].self, from: Data(papersJSON(now: now).utf8))) ?? []
+        return notes.compactMap { note in
+            let html = note.content?.first?.attachment?.data.flatMap { Data(base64Encoded: $0) }
+                .flatMap { String(data: $0, encoding: .utf8) } ?? ""
+            return FHIRMapper.paper(note, text: PlainText.fromHTML(html))
+        }
+    }
+
+    private static func papersJSON(now: Date) -> String {
+        let preOp = Data("""
+        <p>SAMPLE &ndash; Pre-op instructions</p><p>Stop ibuprofen 7 days before surgery.</p>
+        <p>Nothing to eat after midnight the night before.</p><p>Questions: call 555-0142.</p>
+        """.utf8).base64EncodedString()
+        let visit = Data("""
+        <p>SAMPLE &ndash; Visit summary</p><p>Keep taking aspirin 81 mg unless told otherwise.</p>
+        <p>Walk 10 minutes 3 times a day after surgery.</p>
+        """.utf8).base64EncodedString()
+        return """
+        [
+          {"resourceType": "DocumentReference", "id": "sample-1", "status": "current", "date": "\(iso(-1, hour: 9, from: now))",
+           "type": {"text": "Pre-op Instructions"},
+           "content": [{"attachment": {"contentType": "text/html", "data": "\(preOp)"}}]},
+          {"resourceType": "DocumentReference", "id": "sample-2", "status": "current", "date": "\(iso(-8, hour: 11, from: now))",
+           "type": {"text": "Office Visit Summary"},
+           "content": [{"attachment": {"contentType": "text/html", "data": "\(visit)"}}]}
         ]
         """
     }

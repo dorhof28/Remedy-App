@@ -9,6 +9,7 @@ import Foundation
 import PDFKit
 import UIKit
 
+// reads a pdf's text, or its page pictures when it has no text
 enum PDFReader {
 
     // more pages than this is probably the wrong file
@@ -20,7 +21,7 @@ enum PDFReader {
     }
 
     // text pages keep their text scanned pages get read with the picture
-    static func scan(_ url: URL) async throws -> [ScannedPage] {
+    static func scan(_ url: URL, modelReader: PageModelReader? = nil) async throws -> [ScannedPage] {
         // files from the Files app need permission while we read them
         let hasAccess = url.startAccessingSecurityScopedResource()
         defer { if hasAccess { url.stopAccessingSecurityScopedResource() } }
@@ -38,14 +39,14 @@ enum PDFReader {
             if text.filter({ $0.isLetter || $0.isNumber }).count >= 20 {
                 pages.append(ScannedPage(text: text))
             } else {
-                pages.append(await TextReader.scan(image(of: page)))
+                pages.append(await TextReader.scan(image(of: page), modelReader: modelReader))
             }
         }
         return pages
     }
 
     // draws one page as a white image about 2000 pixels on its long side
-    private static func image(of page: PDFPage) -> UIImage {
+    static func image(of page: PDFPage) -> UIImage {
         let bounds = page.bounds(for: .mediaBox)
         let scale = 2000 / max(bounds.width, bounds.height, 1)
         let size = CGSize(width: bounds.width * scale, height: bounds.height * scale)

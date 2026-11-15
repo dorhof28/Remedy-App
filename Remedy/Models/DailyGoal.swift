@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+// something to do a few times a day, like walks or breathing exercises
 @Model
 final class DailyGoal {
 
@@ -17,6 +18,14 @@ final class DailyGoal {
 
     // how many times a day
     var target: Int = 1
+
+    // for home exercises like 3 sets of 10 reps
+    var reps: Int?
+    var sets: Int?
+    // optional timer or hold length
+    var seconds: Int?
+    // times a day, falls back to target
+    var timesPerDay: Int?
 
     var startDay: Int?
     var endDay: Int?

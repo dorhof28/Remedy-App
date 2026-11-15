@@ -1,0 +1,15 @@
+Remedy/Interface/ViewModels/MedicineDetailViewModel.swift:124 verdictSymbol
+Remedy/Interface/ViewModels/MedicineDetailViewModel.swift:308 asNeededDetail
+Remedy/Interface/ViewModels/SettingsViewModel.swift:229 hasDischargeDate
+Remedy/Interface/Screens/ClassicUI/Views/Settings/SettingsView.swift:255 readableContentTypes
+Remedy/Interface/Screens/ClassicUI/Views/Settings/SettingsView.swift:260 fileWrapper
+Remedy/Interface/Components/PhotoCamera.swift:38 imagePickerController
+Remedy/Interface/Components/PhotoCamera.swift:43 imagePickerControllerDidCancel
+Remedy/Interface/Components/CalendarEventSheet.swift:34 eventEditViewController
+Remedy/Interface/Components/DocumentScanner.swift:48 documentCameraViewControllerDidCancel
+Remedy/Core/MedicalWords.swift:70 medicineWords
+Remedy/Core/DayMath.swift:94 signedDay
+Remedy/Models/Paper.swift:53 sortDate
+Remedy/Persistence/DraftPlan.swift:33 uncheckedCount
+Remedy/Services/Siri/RemedyIntents.swift:43 RemedyShortcuts
+Remedy/Services/Siri/RemedyIntents.swift:44 appShortcuts

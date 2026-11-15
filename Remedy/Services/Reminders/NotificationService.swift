@@ -9,6 +9,7 @@ import Foundation
 import SwiftData
 import UserNotifications
 
+// schedules reminders and handles their buttons
 final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
 
     static let shared = NotificationService()
@@ -37,9 +38,9 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
     func start(container: ModelContainer) {
         self.container = container
         center.delegate = self
-        let tookIt = UNNotificationAction(identifier: Self.tookItAction, title: "I took it", options: [],
+        let tookIt = UNNotificationAction(identifier: Self.tookItAction, title: "I Took It", options: [],
                                           icon: UNNotificationActionIcon(systemImageName: "checkmark"))
-        let snooze = UNNotificationAction(identifier: Self.snoozeAction, title: "Remind me in \(Self.snoozeMinutes) min", options: [],
+        let snooze = UNNotificationAction(identifier: Self.snoozeAction, title: "Snooze \(Self.snoozeMinutes) Minutes", options: [],
                                           icon: UNNotificationActionIcon(systemImageName: "clock"))
         let dose = UNNotificationCategory(identifier: Self.doseCategory, actions: [tookIt, snooze], intentIdentifiers: [])
         center.setNotificationCategories([dose])
@@ -60,9 +61,34 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
             return
         }
 
-        for item in ReminderPlan.items(for: plan, now: now) {
+        // days already checked in need no reminder
+        let checked = Set(((try? container?.mainContext.fetch(FetchDescriptor<CheckIn>())) ?? []).map(\.day))
+        for item in ReminderPlan.itemsWithCheck(for: plan, now: now, checkedInDays: checked) {
             try? await center.add(request(for: item))
         }
+
+        // ask-by calls, replaced with the rest when resolved findings drop out
+        if let surgery = plan.surgeryDate {
+            let contact = plan.contacts.first { $0.role == .careTeam && !$0.phone.isEmpty }?.name
+            let findings = PaperCheckReport.of(plan).result.findings
+            for reminder in AskByReminder.reminders(for: findings, surgeryDate: surgery, contactName: contact, now: now) {
+                try? await center.add(askByRequest(reminder))
+            }
+        }
+    }
+
+    // the reminder to call the office about a red card
+    private func askByRequest(_ reminder: AskByReminder) -> UNNotificationRequest {
+        let content = UNMutableNotificationContent()
+        content.title = reminder.title
+        content.body = reminder.body
+        content.sound = .default
+        content.interruptionLevel = .active
+        // a passed ask-by day repeats at 9 AM every day, the next refresh drops it once resolved or the plan changed
+        let units: Set<Calendar.Component> = reminder.repeatsDaily ? [.hour, .minute] : [.year, .month, .day, .hour, .minute]
+        let parts = DayMath.calendar.dateComponents(units, from: reminder.fireDate)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: parts, repeats: reminder.repeatsDaily)
+        return UNNotificationRequest(identifier: reminder.findingKey, content: content, trigger: trigger)
     }
 
     // turns everything off
@@ -79,6 +105,7 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
+    // one reminder as a notification request
     private func request(for item: ReminderItem) -> UNNotificationRequest {
         let content = UNMutableNotificationContent()
         content.title = item.title
@@ -95,8 +122,24 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
         return UNNotificationRequest(identifier: item.id, content: content, trigger: trigger)
     }
 
+    // MARK: - Remind me again (Not Now on Today)
+
+    // one reminder in a few minutes for a dose put off on Today, only if reminders are allowed
+    func remindAgain(title: String, body: String, inMinutes minutes: Int) async {
+        guard isEnabled else { return }
+        let settings = await center.notificationSettings()
+        guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else { return }
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(minutes * 60), repeats: false)
+        try? await center.add(UNNotificationRequest(identifier: "again-\(UUID())", content: content, trigger: trigger))
+    }
+
     // MARK: - While the app is open: still show it as a banner
 
+    // shows reminders even while the app is open
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
         [.banner, .list, .sound]
@@ -104,6 +147,7 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
 
     // MARK: - Buttons on the notification
 
+    // the took it button logs the dose without opening the app
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse) async {
         let content = response.notification.request.content
@@ -140,6 +184,7 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
         return data.base64EncodedString()
     }
 
+    // medicine ids packed into the notification
     private static func decode(_ text: String) -> [PersistentIdentifier] {
         guard let data = Data(base64Encoded: text),
               let ids = try? JSONDecoder().decode([PersistentIdentifier].self, from: data) else { return [] }

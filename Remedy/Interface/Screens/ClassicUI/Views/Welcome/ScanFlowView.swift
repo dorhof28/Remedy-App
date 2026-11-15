@@ -8,11 +8,16 @@
 import SwiftUI
 import SwiftData
 
+// shows the scan flow's current step
 struct ScanFlowView: View {
 
     @State private var viewModel: ScanFlowViewModel
+    @Query(sort: \CarePlan.createdAt, order: .reverse) private var plans: [CarePlan]
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @AppStorage(AppLook.storageKey) private var savedLook: AppLook = .simple
+    // the first setup is always classic, adding papers later keeps the saved look
+    private var look: AppLook { viewModel.isAddingPapers ? savedLook : .classic }
 
     init(isAddingPapers: Bool = false, planHasSurgeryDate: Bool = false) {
         _viewModel = State(initialValue: ScanFlowViewModel(isAddingPapers: isAddingPapers,
@@ -20,258 +25,69 @@ struct ScanFlowView: View {
     }
 
     var body: some View {
+        @Bindable var viewModel = viewModel
         NavigationStack {
             Group {
                 switch viewModel.step {
-                case .welcome: WelcomeView(viewModel: viewModel)
-                case .choosePaper: ChoosePaperView(viewModel: viewModel)
-                case .reading: ReadingView(viewModel: viewModel)
+                case .welcome:
+                    WelcomeView(viewModel: viewModel)
+                case .addPapers:
+                    if viewModel.errorText != nil {
+                        PaperProblemView(viewModel: viewModel)
+                    } else if look == .simple {
+                        SimpleAddPapersView(viewModel: viewModel)
+                    } else {
+                        AddPapersView(viewModel: viewModel)
+                    }
+                case .pages:
+                    PagesScannedView(viewModel: viewModel)
+                case .importPick:
+                    ImportPickView(viewModel: viewModel)
+                case .paperDetails:
+                    if look == .simple { SimplePaperDetailsView(viewModel: viewModel) } else { PaperDetailsView(viewModel: viewModel) }
+                case .reading: ReadingProgressView(viewModel: viewModel)
+                case .checkHidden:
+                    // the consent opens over the reading screen, nothing is sent until Send
+                    ReadingProgressView(viewModel: viewModel)
+                        .sheet(isPresented: .constant(true)) { CheckHiddenView(viewModel: viewModel) }
                 case .confirm: ConfirmView(viewModel: viewModel)
                 case .finish: FinishView(viewModel: viewModel) { dismiss() }
+                case .whatChanged:
+                    if let changes = viewModel.whatChanged {
+                        let footer = WhatChangedViewModel.footer(plan: plans.first)
+                        if look == .simple { SimpleWhatChangedView(viewModel: changes, footer: footer) } else { WhatChangedView(viewModel: changes, footer: footer) }
+                    }
+                case .setup:
+                    SetupStepView(viewModel: viewModel)
                 }
             }
-            .transition(.slideIn(reduceMotion: reduceMotion))
-            .background(Color.screenBackground)
+            // reading and checking fade, so the page that was just read never jumps
+            .transition(viewModel.step == .reading || viewModel.step == .checkHidden
+                        ? .opacity : .slideIn(reduceMotion: reduceMotion))
+            .remedyBackground()
+            .sheet(isPresented: $viewModel.showsSendSheet) { WhatGetsSentSheet(viewModel: viewModel) }
+            .sheet(isPresented: $viewModel.showsAIChoice) {
+                AIChoiceSheet(defaults: .standard) { _ in
+                    viewModel.reloadAIChoice()
+                }
+            }
             .toolbar {
+                // how papers are read, up top so the screen keeps its room, the first screen has the settings gear instead
+                if [.addPapers, .paperDetails].contains(viewModel.step), viewModel.errorText == nil {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            viewModel.showsAIChoice = true
+                        } label: {
+                            Label("Change how papers are read", systemImage: "slider.horizontal.3")
+                        }
+                        .labelStyle(.iconOnly)
+                        .frame(minWidth: Spacing.minTarget, minHeight: Spacing.minTarget)
+                    }
+                }
                 if viewModel.isAddingPapers {
                     ToolbarItem(placement: .cancellationAction) {
                         Button(viewModel.cancelButton) { dismiss() }
                     }
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Reading (live steps then what was found and the cleaned page)
-
-// progress while reading the papers
-struct ReadingView: View {
-    let viewModel: ScanFlowViewModel
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    // is the full text open
-    @State private var isShowingAll = false
-
-    var body: some View {
-        ScrollView {
-            VStack(spacing: Spacing.betweenCards) {
-                TopCard(title: viewModel.readingTitle) {
-                    ReadingPageAnimation(isScanning: viewModel.pageIsScanning,
-                                         isBlackedOut: viewModel.pageIsBlackedOut,
-                                         badge: viewModel.stage.symbol,
-                                         isDone: viewModel.isReadingDone)
-                }
-
-                Card {
-                    VStack(alignment: .leading, spacing: 16) {
-                        ForEach(viewModel.stages) { stage in
-                            ReadingStageRow(stage: stage,
-                                            isDone: viewModel.isDone(stage),
-                                            isRunning: viewModel.isRunning(stage),
-                                            detail: viewModel.detail(for: stage))
-                        }
-                    }
-                }
-
-                // a real clock so a long wait never looks stuck
-                if !viewModel.isReadingDone {
-                    TimelineView(.periodic(from: .now, by: 1)) { context in
-                        Label(viewModel.waitText(now: context.date), systemImage: "hourglass")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .contentTransition(.numericText())
-                            .opacity(viewModel.waitText(now: context.date).isEmpty ? 0 : 1)
-                            .animation(.easeInOut, value: viewModel.waitText(now: context.date))
-                    }
-                }
-
-                // what was found counting up to the real numbers
-                if viewModel.isReadingDone {
-                    FoundCountsCard(viewModel: viewModel)
-                        .task { await viewModel.countUp(reduceMotion: reduceMotion) }
-                        .transition(.scale(scale: 0.95).combined(with: .opacity))
-                }
-
-                // what was actually sent the page with personal info blacked out
-                if viewModel.isReadingDone {
-                    SectionCard(title: viewModel.cleanedTitle, symbol: "eye.slash", detail: "",
-                                tone: .good, collapsible: false, rememberAs: "scan.cleaned") {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Label(viewModel.removedText, systemImage: "lock.shield.fill")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(Tone.good.color)
-                            RedactedText(text: viewModel.cleanedText)
-                                .font(.subheadline)
-                                .lineLimit(6)
-                            Button {
-                                isShowingAll = true
-                            } label: {
-                                Label(viewModel.seeAllTitle, systemImage: "doc.text.magnifyingglass")
-                                    .font(.subheadline.weight(.semibold))
-                            }
-                        }
-                        .padding(.vertical, Spacing.rowVertical)
-                    }
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-
-                    // anything the patient should double-check on the paper
-                    ForEach(viewModel.warnings, id: \.self) { warning in
-                        ToneBox(eyebrow: "Check this", title: warning, tone: .caution)
-                    }
-                    if !viewModel.readByText.isEmpty {
-                        Text(viewModel.readByText)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Button {
-                        viewModel.goToConfirm()
-                    } label: {
-                        Text(viewModel.continueButton)
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.glassProminent)
-                    .controlSize(.large)
-                }
-            }
-            .padding(.horizontal, Spacing.screenEdge)
-            .padding(.bottom, Spacing.scrollBottom)
-        }
-        .navigationBarBackButtonHidden()
-        .sheet(isPresented: $isShowingAll) {
-            SentPagesView(viewModel: viewModel)
-        }
-    }
-}
-
-// one reading step with its moving icon and what really happened
-struct ReadingStageRow: View {
-    let stage: ReadingStage
-    let isDone: Bool
-    let isRunning: Bool
-    let detail: String
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: isDone ? "checkmark.circle.fill" : stage.symbol)
-                .font(.title3)
-                .foregroundStyle(isDone ? Tone.good.color : isRunning ? Color.remedyTeal : Color.inactive)
-                .contentTransition(.symbolEffect(.replace))
-                .symbolEffect(.pulse, isActive: isRunning && !reduceMotion)
-                .frame(width: 28)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(stage.title)
-                    .fontWeight(isRunning ? .semibold : .regular)
-                    .foregroundStyle(isDone || isRunning ? .primary : .secondary)
-                if !detail.isEmpty {
-                    Text(detail)
-                        .font(.footnote)
-                        .foregroundStyle(isDone ? Tone.good.color : Color.secondary)
-                        .contentTransition(.numericText())
-                        .transition(.opacity)
-                }
-            }
-            Spacer(minLength: 0)
-            if isRunning {
-                ProgressView()
-                    .controlSize(.small)
-            }
-        }
-        .animation(.snappy, value: detail)
-        .accessibilityElement(children: .combine)
-        .accessibilityValue(isDone ? "Done" : isRunning ? "Working" : "Waiting")
-    }
-}
-
-// medicines rules visits and to-dos found ticking up
-struct FoundCountsCard: View {
-    let viewModel: ScanFlowViewModel
-
-    var body: some View {
-        Card {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(viewModel.foundTitle)
-                    .font(.headline)
-                HStack(spacing: 8) {
-                    ForEach(Array(viewModel.foundCounts.enumerated()), id: \.element.id) { index, found in
-                        VStack(spacing: 4) {
-                            Image(systemName: found.symbol)
-                                .font(.title3)
-                                .foregroundStyle(found.tone.color)
-                            Text("\(viewModel.shownCount(index))")
-                                .font(.title.weight(.bold))
-                                .monospacedDigit()
-                                .contentTransition(.numericText())
-                            Text(found.title)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel("\(found.total) \(found.title)")
-                    }
-                }
-            }
-        }
-    }
-}
-
-// every page exactly as the ai got it
-struct SentPagesView: View {
-    let viewModel: ScanFlowViewModel
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Spacing.betweenCards) {
-                    Label(viewModel.sentPagesDetail, systemImage: "lock.shield.fill")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    ForEach(viewModel.cleanedPages) { page in
-                        Card {
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    Text(page.title)
-                                        .font(.headline)
-                                    Spacer()
-                                    Label(page.removedText, systemImage: "eye.slash")
-                                        .font(.caption.weight(.semibold))
-                                        .foregroundStyle(Tone.good.color)
-                                }
-                                Divider()
-                                if let picture = page.picture {
-                                    Image(uiImage: picture)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(.quaternary))
-                                    Text(viewModel.pictureCaption)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                    Divider()
-                                }
-                                RedactedText(text: page.text)
-                                    .font(.callout)
-                                    .lineSpacing(3)
-                                    .textSelection(.enabled)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, Spacing.screenEdge)
-                .padding(.vertical, 8)
-            }
-            .background(Color.screenBackground)
-            .navigationTitle(viewModel.sentPagesTitle)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
                 }
             }
         }
@@ -286,47 +102,103 @@ struct FinishView: View {
     let onDone: () -> Void
 
     @Environment(\.modelContext) private var context
+    @AppStorage(AppLook.storageKey) private var savedLook: AppLook = .simple
+    // the first setup is always classic, adding papers later keeps the saved look
+    private var look: AppLook { viewModel.isAddingPapers ? savedLook : .classic }
+
+    // the are you sure question when no date was picked
+    @State private var isCheckingDate = false
+
+    private var isSimple: Bool { look == .simple }
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    private var doneButton: some View {
+        PrimaryButton(title: viewModel.doneButton, action: start)
+            .sensoryFeedback(.success, trigger: viewModel.step)
+    }
 
     var body: some View {
         ScrollView {
-            VStack(spacing: Spacing.betweenCards) {
-                TopCard(title: viewModel.finishTitle, subtitle: viewModel.finishDetail) {
-                    Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 64))
-                        .foregroundStyle(Tone.good.color)
-                        .symbolEffect(.bounce, value: viewModel.step)
-                }
-
-                if viewModel.needsSurgeryDate {
-                    Card {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(viewModel.surgeryDateTitle)
-                                .font(.headline)
-                            Text(viewModel.surgeryDateDetail)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            DatePicker(viewModel.surgeryDateTitle, selection: $viewModel.surgeryDate,
-                                       displayedComponents: .date)
-                                .datePickerStyle(.graphical)
-                                .labelsHidden()
+            VStack(spacing: 24) {
+                HeroMessage(symbol: "checkmark.circle", tone: .good, title: viewModel.finishTitle, text: viewModel.finishDetail)
+                    .padding(.top, 40)
+                if !viewModel.finishRows.isEmpty {
+                    VStack(spacing: 0) {
+                        ForEach(viewModel.finishRows) { row in
+                            if row.id != viewModel.finishRows.first?.id { Divider().padding(.leading, 60) }
+                            ListRow(symbol: row.symbol, tone: row.tone, title: row.title, subtitle: row.detail)
+                                .padding(.horizontal, Spacing.insideCard).padding(.vertical, 10)
+                                .accessibilityElement(children: .combine)
                         }
                     }
+                    .background(RoundedRectangle(cornerRadius: Radius.card, style: .continuous).fill(Color.cardBackground))
                 }
-
-                Button {
-                    viewModel.save(in: context)
-                    onDone()        // a sheet closes; on first run the tabs appear by themselves
-                } label: {
-                    Text(viewModel.startButton)
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
+                if viewModel.needsSurgeryDate {
+                    VStack(alignment: .leading, spacing: 8) {
+                        DatePicker(viewModel.surgeryDateTitle, selection: $viewModel.surgeryDate, displayedComponents: .date)
+                            .font(.headline)
+                            .frame(minHeight: Spacing.minTarget)
+                            .onChange(of: viewModel.surgeryDate) { viewModel.hasPickedDate = true }
+                        Text(viewModel.surgeryDateDetail)
+                            .font(.footnote)
+                            .foregroundStyle(Color.ink2)
+                    }
+                    .padding(Spacing.insideCard)
+                    .background(RoundedRectangle(cornerRadius: Radius.card, style: .continuous).fill(Color.cardBackground))
                 }
-                .buttonStyle(.glassProminent)
-                .controlSize(.large)
-                .sensoryFeedback(.success, trigger: viewModel.step)
+                if typeSize.isAccessibilitySize { doneButton }
             }
             .padding(.horizontal, Spacing.screenEdge)
-            .padding(.bottom, Spacing.scrollBottom)
+            .padding(.bottom, 24)
+        }
+        .background(Color.screenBackground)
+        // at accessibility sizes the button ends the page instead of covering it
+        .safeAreaInset(edge: .bottom) {
+            if !typeSize.isAccessibilitySize {
+                doneButton
+                    .padding(.horizontal, Spacing.screenEdge)
+                    .padding(.bottom, 8)
+            }
+        }
+        .navigationBarBackButtonHidden()
+        .toolbar(.hidden, for: .navigationBar)
+        .alert(viewModel.checkDateTitle, isPresented: $isCheckingDate) {
+            Button(viewModel.checkDateYes) { proceed() }
+            Button(viewModel.checkDateNo, role: .cancel) {}
+        } message: {
+            Text(viewModel.surgeryDateDetail)
+        }
+    }
+
+    // a guessed surgery date is confirmed before the plan starts
+    private func start() {
+        if viewModel.asksToCheckDate {
+            isCheckingDate = true
+        } else {
+            proceed()
+        }
+    }
+
+    // setup questions now wait for the moment each is needed, so done saves straight away
+    private func proceed() {
+        // a sheet closes; on first run the tabs appear by themselves
+        if viewModel.save(in: context) { onDone() }
+    }
+
+    @ViewBuilder
+    private var startButton: some View {
+        if isSimple {
+            Button(action: start) {
+                Label(viewModel.startButton, systemImage: "checkmark")
+            }
+            .buttonStyle(SimpleButtonStyle())
+            .sensoryFeedback(.success, trigger: viewModel.step)
+        } else {
+            Button(action: start) {
+                Text(viewModel.startButton)
+            }
+            .buttonStyle(RemedyButtonStyle())
+            .sensoryFeedback(.success, trigger: viewModel.step)
         }
     }
 }
@@ -334,4 +206,123 @@ struct FinishView: View {
 #Preview("First run") {
     ScanFlowView()
         .modelContainer(for: RemedySchema.models, inMemory: true)
+}
+
+// MARK: - About this paper (confirm what was found)
+
+// who gave it, the doctor, where it is from, the printed date and what it covers
+// the doctor is read from the paper, so there is nothing to type
+struct PaperDetailsView: View {
+    @Bindable var viewModel: ScanFlowViewModel
+
+    var body: some View {
+        List {
+            Section {
+                ForEach(NewerPaperRule.Giver.allCases, id: \.self) { giver in
+                    RadioRow(title: giver.title, isOn: viewModel.shownGiver == giver) {
+                        Motion.run { viewModel.pickGiver(giver) }
+                    }
+                }
+            } header: {
+                ListSectionHeader(title: viewModel.whoTitle)
+            }
+
+            Section {
+                NavigationLink {
+                    TextFieldPage(title: viewModel.doctorTitle, text: $viewModel.doctorName, prompt: "Dr. Ama Okafor")
+                } label: {
+                    ListRow(symbol: "person.crop.circle", title: viewModel.doctorTitle,
+                            value: viewModel.foundDoctor ?? viewModel.notFoundText)
+                }
+                NavigationLink {
+                    TextFieldPage(title: viewModel.hospitalFoundTitle, text: $viewModel.hospitalText, prompt: "Lakeside Orthopedics")
+                } label: {
+                    ListRow(symbol: "building.2", title: viewModel.hospitalFoundTitle,
+                            value: viewModel.foundHospital ?? viewModel.notFoundText)
+                }
+                if viewModel.hasPrintedDate {
+                    NavigationLink {
+                        PrintedDatePage(viewModel: viewModel)
+                    } label: {
+                        ListRow(symbol: "calendar", title: viewModel.printedOnTitle, value: viewModel.printedDateText)
+                    }
+                }
+                // on means no date, Remedy never guesses one
+                Toggle(isOn: Binding(get: { !viewModel.hasPrintedDate },
+                                     set: { off in Motion.run { viewModel.hasPrintedDate = !off } })) {
+                    ListRow(symbol: "calendar", title: viewModel.noDateTitle)
+                }
+                .tint(Color.accentFill)
+            } header: {
+                ListSectionHeader(title: viewModel.fromPageTitle)
+            }
+
+            Section {
+                Picker(viewModel.coversTitle, selection: Binding(get: { viewModel.paper },
+                                                                 set: { viewModel.pickPaper($0.rawValue) })) {
+                    Text(viewModel.beforeSurgeryTitle).tag(PaperKind.beforeSurgery)
+                    Text(viewModel.afterSurgeryTitle).tag(PaperKind.afterSurgery)
+                }
+                .pickerStyle(.segmented)
+                .controlSize(.large)
+                .plainListRow()
+            } header: {
+                ListSectionHeader(title: viewModel.coversTitle)
+            } footer: {
+                VStack(alignment: .leading, spacing: 6) {
+                    if viewModel.asksKind {
+                        Label(viewModel.kindNote, systemImage: "text.magnifyingglass")
+                            .foregroundStyle(Tone.caution.color)
+                    }
+                    Text(viewModel.readingWithFooter)
+                }
+                .font(.footnote)
+                .foregroundStyle(Color.ink2)
+                .padding(.top, 8)
+            }
+        }
+        .remedyList()
+        .navigationTitle(viewModel.detailsTitle)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                Button(viewModel.backButton, systemImage: "chevron.left") { viewModel.goBack() }
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            PrimaryButton(title: "Continue") { Task { await viewModel.confirmPaperDetails() } }
+                .padding(.horizontal, Spacing.screenEdge)
+                .padding(.bottom, 8)
+        }
+    }
+}
+
+// the printed date, a calendar so a typed date is never guessed
+struct PrintedDatePage: View {
+    @Bindable var viewModel: ScanFlowViewModel
+
+    var body: some View {
+        List {
+            DatePicker(viewModel.printedOnTitle, selection: $viewModel.printedDate, in: ...AppClock.now(),
+                       displayedComponents: .date)
+                .datePickerStyle(.graphical)
+                .tint(Color.accentFill)
+        }
+        .remedyList()
+        .navigationTitle(viewModel.printedOnTitle)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// says if a value came from the paper or was left blank, used by both looks
+struct FoundTag: View {
+    let isFound: Bool
+    let viewModel: ScanFlowViewModel
+
+    var body: some View {
+        Label(isFound ? viewModel.foundText : viewModel.blankText,
+              systemImage: isFound ? "doc.text.magnifyingglass" : "questionmark.circle")
+            .font(.callout.weight(.semibold))
+            .foregroundStyle(isFound ? Tone.good.color : Color.secondary)
+    }
 }

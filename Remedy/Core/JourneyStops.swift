@@ -36,7 +36,7 @@ extension Journey {
     static let maxTitles = 3
 
     // every day something happens plus today and surgery day
-    static func stops(plan: CarePlan, today: Int) -> [JourneyStop] {
+    static func stops(plan: some PlanFacts, today: Int) -> [JourneyStop] {
         guard let surgeryDate = plan.surgeryDate else { return [] }
         var days = Set(range(for: plan, today: today).filter { !events(onDay: $0, plan: plan).isEmpty })
         days.insert(today)

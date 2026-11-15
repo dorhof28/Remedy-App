@@ -8,13 +8,14 @@
 import Foundation
 
 // the pieces of a medicine name
-struct CleanMedicineName {
+nonisolated struct CleanMedicineName {
     var name: String
     var strength: String
     var otherNames: [String]
 }
 
-enum MedicineNameCleaner {
+// splits a printed medicine line into its name, strength and brand names
+nonisolated enum MedicineNameCleaner {
 
     static let strengthPattern = "(?i)\\b\\d+(?:\\.\\d+)?(?:\\s*[-/]\\s*\\d+(?:\\.\\d+)?)?\\s*(?:mg|mcg|\u{00B5}g|g|ml|units?|iu|meq|%)(?![A-Za-z])"
 
@@ -27,6 +28,7 @@ enum MedicineNameCleaner {
     // nicknames that go to other names
     static let nicknameStarts = ["baby ", "low dose ", "low-dose ", "children's ", "childrens "]
 
+    // oxyCODONE-acetaminophen (PERCOCET) 5-325 MG tablet becomes oxycodone-acetaminophen, 5-325 mg, percocet
     static func clean(_ raw: String) -> CleanMedicineName {
         var name = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         var otherNames: [String] = []

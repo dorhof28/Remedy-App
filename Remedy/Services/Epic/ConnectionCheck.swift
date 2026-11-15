@@ -14,8 +14,13 @@ struct ConnectionResult: Identifiable {
     let title: String
     let detail: String
     let isOK: Bool
+    // which row of check connections (109) it belongs to
+    var source: Source = .other
+
+    enum Source { case myChart, health, other }
 }
 
+// checks mychart and health answer before a demo
 enum ConnectionCheck {
 
     // every check in order
@@ -25,24 +30,26 @@ enum ConnectionCheck {
         // mychart
         results.append(ConnectionResult(title: "MyChart client ID",
                                         detail: EpicConfig.isSetUp ? "Set (Epic sandbox)" : "Missing in EpicConfig",
-                                        isOK: EpicConfig.isSetUp))
-        results.append(await epicServer())
+                                        isOK: EpicConfig.isSetUp, source: .myChart))
+        var server = await epicServer()
+        server.source = .myChart
+        results.append(server)
 
         // apple health
         results.append(ConnectionResult(title: "Health on this device",
                                         detail: HealthService.isAvailable ? "Available" : "Not available here",
-                                        isOK: HealthService.isAvailable))
+                                        isOK: HealthService.isAvailable, source: .health))
         results.append(ConnectionResult(title: "Health Records",
                                         detail: HealthService.canReadRecords ? "Supported" : "Not supported on this device",
-                                        isOK: HealthService.canReadRecords))
+                                        isOK: HealthService.canReadRecords, source: .health))
         if HealthService.canReadRecords {
             do {
                 let records = try await HealthService.medicineRecords()
                 results.append(ConnectionResult(title: "Medicine records",
                                                 detail: records.isEmpty ? "None yet. Add a hospital in the Health app" : "\(records.count) found",
-                                                isOK: !records.isEmpty))
+                                                isOK: !records.isEmpty, source: .health))
             } catch {
-                results.append(ConnectionResult(title: "Medicine records", detail: "Permission not given", isOK: false))
+                results.append(ConnectionResult(title: "Medicine records", detail: "Permission not given", isOK: false, source: .health))
             }
         }
 

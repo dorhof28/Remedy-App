@@ -7,6 +7,7 @@
 
 import Foundation
 
+// medicine and medical words the spell fixer and name finder must never change or hide
 nonisolated enum MedicalWords {
 
     // common surgery medicines generic and brand lower case
@@ -45,7 +46,25 @@ nonisolated enum MedicalWords {
         "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
         "january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
         "november", "december", "morning", "night", "surgery", "hospital", "instructions", "mychart",
+        "stop", "take", "taking", "do", "not", "before", "after", "prior", "day", "days", "week", "weeks",
+        "medication", "medications", "medicine", "medicines", "directions", "discharge", "visit", "follow",
+        "test", "testing", "blood", "pain", "oil", "water", "food", "continue", "hold", "only", "needed",
+        "next", "plan", "personal", "regular", "baby", "important", "note", "knee", "hip", "spine",
+        "shoulder", "right", "left", "replacement", "admission", "consult", "mrn", "dob", "page",
     ]
+
+    // a dose like 5 mg or 2 tablets
+    static let dosePattern = "\\b\\d+(?:\\.\\d+)?\\s*(?:mg|mcg|g|ml|units?|tablets?|tabs?|capsules?|caps?|puffs?|drops?|iu|%)(?![a-z])"
+
+    // words on a line that is about a medicine
+    static let medicineVerbs = "\\b(stop|take|hold|continue|medication|medicine|tablet|pill)"
+
+    // a line with a dose or that says stop take or hold
+    static func isMedicineLine(_ line: String) -> Bool {
+        let lower = line.lowercased()
+        return lower.range(of: dosePattern, options: .regularExpression) != nil
+            || lower.range(of: medicineVerbs, options: .regularExpression) != nil
+    }
 
     // a word we must never black out
     static func isProtected(_ word: String) -> Bool {

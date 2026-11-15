@@ -69,6 +69,8 @@ nonisolated struct AIMedicine {
     var reason: String
     @Guide(description: "An exception, if the papers give one")
     var exception: String
+    @Guide(description: "The \"Last given\" line for this medicine copied word for word, like \"Last given: 1:40 PM\". Never work out a time. Empty if not written")
+    var lastGivenText: String
 }
 
 // one rule

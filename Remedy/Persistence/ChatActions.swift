@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+// saves and clears the ask chat
 enum ChatActions {
 
     // save
@@ -31,6 +32,7 @@ enum ChatActions {
         message.quoteSource = answer.quoteSource
         message.callPhone = answer.phone
         message.kindRaw = answer.kind.rawValue
+        message.choices = answer.choices
         context.insert(message)
         context.saveNow()
         return message

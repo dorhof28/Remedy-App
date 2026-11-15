@@ -6,14 +6,13 @@
 //
 
 import Foundation
-import SwiftData
 
 // MARK: - Results
 
-// a medicine found in a sentence
-struct MedicineMatch: Identifiable {
-    var id: PersistentIdentifier { medicine.persistentModelID }
-    let medicine: MedicineInstruction
+// a medicine found in a sentence, persistence names the saved kind MedicineMatch
+struct MedicineMatchOf<Medicine: MedicineFacts>: Identifiable {
+    var id: Medicine.LineID { medicine.lineID }
+    let medicine: Medicine
     let matchedName: String
 }
 
@@ -38,23 +37,25 @@ struct MedicineVerdict {
 
 // MARK: - The matcher
 
+// finds which plan medicines a sentence or question names and what the papers say about each
 enum MedicineMatcher {
 
     // finds medicines in a sentence - longest name wins
-    static func matches(inSentence sentence: String, medicines: [MedicineInstruction], today: Int) -> [MedicineMatch] {
+    static func matches<Medicine: MedicineFacts>(inSentence sentence: String, medicines: [Medicine],
+                                                 today: Int) -> [MedicineMatchOf<Medicine>] {
         let text = sentence.lowercased()
-        var found: [MedicineMatch] = []
+        var found: [MedicineMatchOf<Medicine>] = []
         for medicine in medicines {
            
             let hits = names(of: medicine).filter { (name: String) -> Bool in text.contains(name) }
             let longest = hits.max { (first: String, second: String) -> Bool in first.count < second.count }
             if let longest = longest {
-                found.append(MedicineMatch(medicine: medicine, matchedName: longest))
+                found.append(MedicineMatchOf(medicine: medicine, matchedName: longest))
             }
         }
         
-        let allNames = found.map { (match: MedicineMatch) -> String in match.matchedName }
-        let exact = found.filter { (match: MedicineMatch) -> Bool in
+        let allNames = found.map { (match: MedicineMatchOf<Medicine>) -> String in match.matchedName }
+        let exact = found.filter { (match: MedicineMatchOf<Medicine>) -> Bool in
             !allNames.contains { (other: String) -> Bool in
                 other != match.matchedName && other.contains(match.matchedName)
             }
@@ -63,24 +64,25 @@ enum MedicineMatcher {
     }
 
     // serach preview
-    static func matches(forSearch query: String, medicines: [MedicineInstruction], today: Int) -> [MedicineMatch] {
+    static func matches<Medicine: MedicineFacts>(forSearch query: String, medicines: [Medicine],
+                                                 today: Int) -> [MedicineMatchOf<Medicine>] {
         let typed = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard typed.count >= 2 else { return [] }
-        var found: [MedicineMatch] = []
+        var found: [MedicineMatchOf<Medicine>] = []
         for medicine in medicines {
             let hit = names(of: medicine).first { (name: String) -> Bool in
                 name.hasPrefix(typed) || (typed.count >= 3 && name.contains(typed)) || typed.contains(name)
             }
             if let hit = hit {
-                found.append(MedicineMatch(medicine: medicine, matchedName: hit))
+                found.append(MedicineMatchOf(medicine: medicine, matchedName: hit))
             }
         }
         return ranked(found, today: today)
     }
 
     // rnak by best
-    static func ranked(_ matches: [MedicineMatch], today: Int) -> [MedicineMatch] {
-        matches.sorted { (first: MedicineMatch, second: MedicineMatch) -> Bool in
+    static func ranked<Medicine: MedicineFacts>(_ matches: [MedicineMatchOf<Medicine>], today: Int) -> [MedicineMatchOf<Medicine>] {
+        matches.sorted { (first: MedicineMatchOf<Medicine>, second: MedicineMatchOf<Medicine>) -> Bool in
             let a = score(first.medicine, today: today)
             let b = score(second.medicine, today: today)
             return a < b
@@ -88,7 +90,7 @@ enum MedicineMatcher {
     }
 
     // order
-    private static func score(_ medicine: MedicineInstruction, today: Int) -> Int {
+    private static func score(_ medicine: some MedicineFacts, today: Int) -> Int {
         let actionOrder: Int
         switch medicine.action {
         case .stop: actionOrder = 0
@@ -107,13 +109,13 @@ enum MedicineMatcher {
     }
 
     // the medicine's own name plus every other name all lower-case
-    static func names(of medicine: MedicineInstruction) -> [String] {
+    static func names(of medicine: some MedicineFacts) -> [String] {
         // lowercased in case the ai saved Advil
         [medicine.name.lowercased()] + medicine.alsoKnownAs.map { $0.lowercased() }
     }
 
     // output based off other functions goes to main
-    static func verdict(for medicine: MedicineInstruction, today: Int, surgeryDate: Date) -> MedicineVerdict {
+    static func verdict(for medicine: some MedicineFacts, today: Int, surgeryDate: Date) -> MedicineVerdict {
         let started = today >= (medicine.startDay ?? Int.min)
         let ended = today > (medicine.endDay ?? Int.max)
 
@@ -162,7 +164,7 @@ enum MedicineMatcher {
     }
 
     // split all the output from before into helper functions
-    private static func dontTake(_ medicine: MedicineInstruction, today: Int, surgeryDate: Date) -> MedicineVerdict {
+    private static func dontTake(_ medicine: some MedicineFacts, today: Int, surgeryDate: Date) -> MedicineVerdict {
         var sentence: String
         if let start = medicine.startDay, start == today {
             sentence = "Stop today."
@@ -179,20 +181,23 @@ enum MedicineMatcher {
         return MedicineVerdict(kind: .dontTake, headline: "Don’t take", sentence: sentence)
     }
 
-    private static func stopSoon(_ medicine: MedicineInstruction, today: Int, surgeryDate: Date) -> MedicineVerdict {
+    // a stop that starts later
+    private static func stopSoon(_ medicine: some MedicineFacts, today: Int, surgeryDate: Date) -> MedicineVerdict {
         let start = medicine.startDay ?? today
         let short = DayMath.shortDate(forDay: start, from: surgeryDate)
         let sentence = "Your papers say to stop it \(DayMath.surgeryWords(forDay: start)): \(DayMath.longDate(forDay: start, from: surgeryDate)), \(DayMath.relative(daysFromToday: start - today))."
         return MedicineVerdict(kind: .stopSoon, headline: "Stop on \(short)", sentence: sentence)
     }
 
-    private static func stopEnded(_ medicine: MedicineInstruction, surgeryDate: Date) -> MedicineVerdict {
+    // a stop whose end day has passed
+    private static func stopEnded(_ medicine: some MedicineFacts, surgeryDate: Date) -> MedicineVerdict {
         let last = dateText(medicine.endDay, surgeryDate)
         return MedicineVerdict(kind: .stopEnded, headline: "Stop has ended",
                            sentence: "Your papers said not to take it until \(last). Check with your surgeon before you start again.")
     }
 
-    private static func takeNow(_ medicine: MedicineInstruction, surgeryDate: Date) -> MedicineVerdict {
+    // a medicine to take on a schedule
+    private static func takeNow(_ medicine: some MedicineFacts, surgeryDate: Date) -> MedicineVerdict {
         let times = medicine.timesOfDay.map { (minute: Int) -> String in DayMath.shortTimeText(minute) }
         var sentence = medicine.amount.isEmpty ? "Take it" : "Take \(medicine.amount)"
         if !times.isEmpty {
@@ -208,7 +213,8 @@ enum MedicineMatcher {
         return MedicineVerdict(kind: .take, headline: "Take every day", sentence: sentence)
     }
 
-    private static func asNeededNow(_ medicine: MedicineInstruction, surgeryDate: Date) -> MedicineVerdict {
+    // an as needed medicine, with what it is for and the gap
+    private static func asNeededNow(_ medicine: some MedicineFacts, surgeryDate: Date) -> MedicineVerdict {
         var parts: [String] = []
         if !medicine.onlyIf.isEmpty {
             parts.append("Only for \(PlainText.lowerFirst(medicine.onlyIf)).")

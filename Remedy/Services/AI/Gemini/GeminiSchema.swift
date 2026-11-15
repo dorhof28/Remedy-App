@@ -7,6 +7,7 @@
 
 import Foundation
 
+// the AIPlan shape as gemini's json schema
 enum GeminiSchema {
 
     static let plan: [String: Any] = object([
@@ -40,6 +41,7 @@ enum GeminiSchema {
         ("onlyIf", text("When to take it, for as-needed medicines")),
         ("reason", text("Why, if the papers say")),
         ("exception", text("An exception, if the papers give one")),
+        ("lastGivenText", text("The \"Last given\" line for this medicine copied word for word, like \"Last given: 1:40 PM\". Never work out a time. Empty if not written")),
     ])
 
     private static let rule: [String: Any] = object([
