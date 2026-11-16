@@ -69,6 +69,10 @@ struct DemoModeViewModel {
     let samplePapersDetail = "The 4 papers behind HSS knee replacement. Open, share or add them."
     let samplePapersIntro = "Made-up papers in the same format as real hospital printouts. Open one to see it, then load HSS knee replacement to see what Remedy made from it. To show adding papers, share them to Files and add them from Remedy."
     let shareTitle = "Share"
+    let readWithTitle = "Read papers with"
+    let readWithAI = "Your AI"
+    let readWithAnswers = "Expected answers"
+    let readWithNote = "Your AI reads added papers with the AI picked in Settings, like Claude. Expected answers skips the AI and uses the answer key for the sample papers, so the result is the same every time. Only works in demo mode."
     let connectionTitle = "Check Connections"
     let connectionDetail = "MyChart and Health with a sample patient"
 

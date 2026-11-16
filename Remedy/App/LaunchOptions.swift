@@ -85,6 +85,10 @@ enum LaunchOptions {
 
     static var isDemoMode: Bool { UserDefaults.standard.bool(forKey: demoModeKey) }
 
+    // demo mode only: added papers get their expected answer instead of going to the ai
+    static let demoExpectedAnswersKey = "demoExpectedAnswers"
+    static var usesExpectedAnswers: Bool { isDemoMode && UserDefaults.standard.bool(forKey: demoExpectedAnswersKey) }
+
     // days the fake today is away from the real one, always 0 with demo mode off
     static var demoDayShift: Int {
         isDemoMode ? clampedShift(UserDefaults.standard.integer(forKey: demoShiftKey)) : 0

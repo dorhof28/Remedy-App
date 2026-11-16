@@ -123,4 +123,18 @@ import Testing
         #expect(cards.contains { $0.status == "Next at 7 PM" })
         #expect(!cards.contains { $0.status.contains("19") || $0.status.contains("21") })
     }
+
+    @Test func expectedAnswersReadEachSamplePaperAndNothingElse() throws {
+        for (paper, item) in zip(RuthDrafts.all(), DemoPapers.all) {
+            let pages = DemoPapers.pageTexts(item)
+            let answer = try ExpectedAnswerReader.answer(for: pages)
+            // the same answer the paper was written for, with its own pages
+            #expect(answer.medicines.map(\.quote) == paper.medicines.map(\.quote), "\(item.file)")
+            #expect(answer.pages.count == pages.count)
+        }
+        // a paper with no answer key is an error, never a guess or an ai
+        #expect(throws: PlanReaderError.self) {
+            try ExpectedAnswerReader.answer(for: ["Take 2 aspirin a day and call the office."])
+        }
+    }
 }

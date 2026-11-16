@@ -39,6 +39,7 @@ private struct DemoHomePage: View {
     @Environment(\.modelContext) private var context
     @AppStorage(LaunchOptions.demoLoadedKey) private var loaded = ""
     @AppStorage(LaunchOptions.demoModeKey) private var isOn = false
+    @AppStorage(LaunchOptions.demoExpectedAnswersKey) private var usesAnswers = false
     // UI only loading a patient or leaving
     @State private var loader = DemoLoader()
 
@@ -62,6 +63,19 @@ private struct DemoHomePage: View {
                 .accessibilityIdentifier("demo-sample-papers")
             } header: {
                 ListSectionHeader(title: viewModel.patientsTitle)
+            }
+            // the ai or the sample papers' answer key when papers are added
+            Section {
+                Picker(viewModel.readWithTitle, selection: $usesAnswers) {
+                    Text(viewModel.readWithAI).tag(false)
+                    Text(viewModel.readWithAnswers).tag(true)
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("demo-read-with")
+            } header: {
+                ListSectionHeader(title: viewModel.readWithTitle)
+            } footer: {
+                Text(viewModel.readWithNote)
             }
             Section {
                 DemoDateRows()

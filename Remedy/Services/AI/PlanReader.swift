@@ -31,6 +31,24 @@ struct FakePlanReader: PlanReader {
     }
 }
 
+// DEMO ONLY the answer key for the sample papers, anything else is an error never an ai
+struct ExpectedAnswerReader: PlanReader {
+    let name = "Expected answers (demo)"
+    let isAvailable = true
+
+    func readPlan(from pages: [String], pictures: [Data?], paper: PaperKind) async throws -> DraftPlan {
+        try await Task.sleep(for: .seconds(2))
+        return try Self.answer(for: pages)
+    }
+
+    // the sample paper's answer with these pages attached
+    static func answer(for pages: [String]) throws -> DraftPlan {
+        guard var draft = SamplePatients.draft(matching: pages) else { throw PlanReaderError.notASamplePaper }
+        draft.pages = pages.enumerated().map { DraftPage(pageNumber: $0.offset + 1, redactedText: $0.element) }
+        return draft
+    }
+}
+
 // which reader to use
 enum PlanReaders {
 
@@ -41,6 +59,7 @@ enum PlanReaders {
     // a new provider is one adapter file one ModelChoice entry and one case here
     static func reader(for choice: ModelChoice) -> PlanReader {
         if LaunchOptions.usesFakeAI { return FakePlanReader() }
+        if LaunchOptions.usesExpectedAnswers { return ExpectedAnswerReader() }
         let reader: PlanReader
         switch choice.id {
         case .onPhone:
@@ -77,6 +96,7 @@ enum PlanReaderError: LocalizedError {
     case offline
     case notReady(String)               // the picked ai has no key or isn't on this phone
     case missingAbility(String, String) // the picked ai can't read photos or fill in the answer form
+    case notASamplePaper                // demo expected answers only know the sample papers
 
     var errorDescription: String? {
         switch self {
@@ -96,6 +116,8 @@ enum PlanReaderError: LocalizedError {
             return "\(name) isn\u{2019}t set up on this phone yet. Pick another AI in Settings."
         case .missingAbility(let name, let ability):
             return "\(name) can\u{2019}t \(ability). Pick another AI in Settings."
+        case .notASamplePaper:
+            return "This isn\u{2019}t one of the sample papers, so there\u{2019}s no expected answer for it. To read it with AI, go to Demo Mode and set Read papers with to Your AI."
         }
     }
 }

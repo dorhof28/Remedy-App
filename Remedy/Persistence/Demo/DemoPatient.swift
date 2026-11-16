@@ -97,6 +97,7 @@ enum DemoMode {
         defaults.set(false, forKey: LaunchOptions.demoModeKey)
         defaults.set(0, forKey: LaunchOptions.demoShiftKey)
         defaults.removeObject(forKey: LaunchOptions.demoLoadedKey)
+        defaults.removeObject(forKey: LaunchOptions.demoExpectedAnswersKey)
     }
 
     // moves the fake today by whole days, never past a year either way

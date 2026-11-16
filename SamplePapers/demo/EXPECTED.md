@@ -7,6 +7,8 @@ The same answers are in the app as `Remedy/Persistence/Demo/RuthDrafts.swift`. E
 
 - **Already set up:** Settings → Demo mode → Start here → **HSS knee replacement**. Loads all four papers with surgery 4 days ago and the days since coming home already filled in.
 - **Live upload:** turn Demo mode on, then add `pdfs/D1` → `D4` from Files. With Demo mode on, the past days fill in as soon as the papers are saved, so uploading at 2 PM shows the 6 AM Tylenol taken at about 6:03, not a list of missed doses.
+  - **Read papers with → Your AI** (Demo mode screen): the AI picked in Settings, like Claude, really reads them. Compare its answer with this file.
+  - **Read papers with → Expected answers:** no AI, the answers below every time. Any other paper shows an error instead of a guess.
 - Testing in Xcode: launch with `-demoScenario hssKnee -demoTime 14:00`.
 - **Show the papers:** Settings → Demo mode → **Sample Papers** opens each PDF in the app, with a Share button to save it to Files.
 - Website screenshots (day 4, 2 PM, both looks) are in `docs/app-media/hss-demo/`.
