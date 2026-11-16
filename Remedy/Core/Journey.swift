@@ -121,7 +121,7 @@ enum Journey {
         }
 
         // rules that start or end on this day
-        for rule in plan.rules {
+        for rule in plan.rules where !rule.isCallSign {
             if rule.startDay == day {
                 let title = rule.isAllowed ? "\(rule.title): OK from today" : "\(rule.title) starts"
                 result.append(DayEventOf(id: "rule-start-\(rule.lineID)", kind: .ruleChange,

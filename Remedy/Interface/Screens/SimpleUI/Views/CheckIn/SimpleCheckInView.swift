@@ -46,6 +46,13 @@ struct SimpleCheckInView: View {
                 switch page {
                 case .pain:
                     painPage
+                    // high pain shows the call right away, the same line as classic
+                    if viewModel.showsPainCall(pain), let call = viewModel.worriedCall, let phone = call.phoneURL {
+                        Link(destination: phone) {
+                            Label(viewModel.callOfficeTitle, systemImage: "phone.fill")
+                        }
+                        .buttonStyle(SimpleButtonStyle(kind: .danger))
+                    }
                     painTrend
                 case .signs: signsPage
                 case .note: notePage

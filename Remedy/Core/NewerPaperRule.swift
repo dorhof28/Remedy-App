@@ -93,13 +93,13 @@ nonisolated enum NewerPaperRule {
         case .newerWins:
             return "Your newer paper is printed a month or more later, so it replaces the older lines. Something not mentioned is never restarted on its own."
         case .ask(.noPrintedDate):
-            return "One paper has no printed date, so Remedy doesn\u{2019}t pick."
+            return "One paper has no printed date, so Remedy can\u{2019}t tell which is right."
         case .ask(.samePrintedDay):
-            return "Both papers are printed the same day, so Remedy doesn\u{2019}t pick."
+            return "Both papers are printed the same day, so Remedy can\u{2019}t tell which is right."
         case .ask:
             let who = newerGiver == .pharmacy ? "the pharmacy" : "another doctor"
             let days = daysApart.map { $0 == 1 ? "1 day later" : "\($0) days later" } ?? "less than a month later"
-            return "The newer paper is from \(who), \(days), so Remedy doesn\u{2019}t pick."
+            return "The newer paper is from \(who), \(days), so Remedy can\u{2019}t tell which is right."
         }
     }
 }

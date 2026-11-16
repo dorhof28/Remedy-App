@@ -36,7 +36,7 @@ struct RulesScreen {
     private var surgeryDate: Date { plan?.surgeryDate ?? now }
 
     var groups: [RulesGroup] {
-        let rules = plan?.rules ?? []
+        let rules = (plan?.rules ?? []).filter { !$0.isCallSign }
         let statuses = rules.map { (rule: $0, status: PlanWording.ruleStatus($0, today: base.day, surgeryDate: surgeryDate)) }
         func lines(_ kinds: [RuleStatusKind], tone: (CareRule) -> Tone) -> [PlanLine] {
             statuses.filter { kinds.contains($0.status.kind) }

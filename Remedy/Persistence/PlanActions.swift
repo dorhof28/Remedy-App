@@ -36,4 +36,16 @@ enum PlanActions {
         context.delete(plan)
         context.saveNow()
     }
+
+    // delete all data: every saved thing, check-ins, photos and office answers too, and the names to hide
+    // ai keys and settings stay
+    static func deleteEverything(in context: ModelContext) {
+        for type in RemedySchema.models { deleteAll(type, in: context) }
+        context.saveNow()
+        PatientNames.save("")
+    }
+
+    private static func deleteAll<T: PersistentModel>(_ type: T.Type, in context: ModelContext) {
+        for model in (try? context.fetch(FetchDescriptor<T>())) ?? [] { context.delete(model) }
+    }
 }

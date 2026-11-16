@@ -159,7 +159,7 @@ struct PlanViewModel {
 
     // each rule's status on a day
     private func ruleStatuses(onDay picked: Int) -> [(rule: CareRule, status: RuleStatus)] {
-        (plan?.rules ?? []).map { (rule: $0, status: PlanWording.ruleStatus($0, today: picked, surgeryDate: surgeryDate)) }
+        (plan?.rules ?? []).filter { !$0.isCallSign }.map { (rule: $0, status: PlanWording.ruleStatus($0, today: picked, surgeryDate: surgeryDate)) }
     }
 
     // rules in effect on a day, not allowed first
@@ -340,7 +340,7 @@ extension PlanViewModel {
 
     // rules in effect live in the rules card, a day only lists the ones that start or end on it
     func ruleChangesOnly(_ sections: [DaySection], onDay picked: Int) -> [DaySection] {
-        let changing = Set((plan?.rules ?? []).filter { $0.startDay == picked || $0.endDay == picked }
+        let changing = Set((plan?.rules ?? []).filter { !$0.isCallSign && $0.startDay == picked || $0.endDay == picked }
             .map { "rule-\($0.persistentModelID)" })
         return sections.compactMap { section in
             guard section.id == "rules" else { return section }

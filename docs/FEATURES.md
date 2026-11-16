@@ -57,4 +57,4 @@ When two papers mention the same medicine, Remedy compares them:
 
 ## Demo mode
 
-Settings → Demo mode loads one of 15 fake patients (surgery in 10 days, surgery tomorrow, papers that disagree, many stop medicines, and more) and can move the fake clock. The real plan is kept safe and comes back when demo mode is turned off.
+Settings → Demo mode loads one of 16 fake patients (HSS knee replacement with its 4 sample papers, surgery in 10 days, surgery tomorrow, papers that disagree, many stop medicines, and more) and can move the fake clock. The real plan is kept safe and comes back when demo mode is turned off.

@@ -260,6 +260,12 @@ extension TodayViewModel {
         case .skipped: state = .done; when = "Skipped \u{00B7} \(row.timeText)"
         }
         let open = state == .now || state == .late
+        // a missed dose is a question, never "take it now", the same as classic
+        if state == .late {
+            return SimpleDayItem(id: "dose-\(row.id.hashValue)", kind: .dose, state: state, sortDate: row.slot.scheduledFor,
+                                 whenText: when, title: TodayScreen.missedQuestion(row), detail: TodayScreen.missedAdvice,
+                                 buttonTitle: "Took it", doses: [row])
+        }
         return SimpleDayItem(id: "dose-\(row.id.hashValue)", kind: .dose, state: state, sortDate: row.slot.scheduledFor,
                              whenText: when,
                              title: SimpleInstruction.take(name: SimpleInstruction.everydayName(medicine), amount: medicine.amount),
@@ -309,7 +315,8 @@ extension TodayViewModel {
         let open = items.filter(\.canLead)
         guard let first = open.first(where: { !snoozed.contains($0.id) }) ?? open.first else { return nil }
         // doses due at the same time go together, "I took it" logs them all
-        guard first.kind == .dose, first.state == .now || first.state == .late else { return first }
+        // missed ones are asked about one at a time
+        guard first.kind == .dose, first.state == .now else { return first }
         let together = open.filter { $0.kind == .dose && $0.state == first.state && $0.sortDate == first.sortDate }
         guard together.count > 1 else { return first }
         return SimpleDayItem(id: first.id, kind: .dose, state: first.state, sortDate: first.sortDate,
@@ -373,6 +380,19 @@ extension TodayViewModel {
         }
     }
 
+    // the answer to "did you take it?", yes logs it at the time it was due, no logs it as missed
+    func simpleAnswerMissed(_ rows: [DoseListRow], took: Bool, in context: ModelContext) -> TodayUndo? {
+        let open = rows.filter { $0.slot.log == nil }
+        guard !open.isEmpty else { return nil }
+        let undos = open.map { row in
+            DoseActions.log(row.slot.medicine, scheduledFor: row.slot.scheduledFor, as: took ? .taken : .skipped,
+                            now: took ? row.slot.scheduledFor : now, in: context)
+        }
+        return TodayUndo(message: took ? "Marked as taken" : "Marked as missed") { context in
+            undos.forEach { DoseActions.undo($0, in: context) }
+        }
+    }
+
     // a goal's "Done", with an undo
     func simpleAddOne(to tile: GoalTile, in context: ModelContext) -> TodayUndo? {
         addOne(to: tile, in: context)
@@ -387,7 +407,7 @@ extension TodayViewModel {
 
 extension PaperCheckCardData {
     var simpleHomeNoPhone: String { "No phone number on your papers. Call your care team." }
-    // "Your papers disagree. Until you hear back, Remedy follows Dr. Rao's paper."
+    // "Your papers disagree. Until you hear back, reminders use Dr. Rao's paper."
     var simpleHomeDetail: String {
         let detail = (followLine.isEmpty ? message.detail : followLine).trimmingCharacters(in: .whitespaces)
         return detail.isEmpty ? message.headline : "\(message.headline). \(detail)"

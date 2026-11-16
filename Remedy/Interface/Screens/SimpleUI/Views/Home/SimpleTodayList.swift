@@ -253,6 +253,7 @@ struct SimpleMyDayView: View {
     // the card's one button
     private func perform(_ item: SimpleDayItem, _ viewModel: TodayViewModel) {
         switch item.kind {
+        case .dose where item.state == .late: done(viewModel.simpleAnswerMissed(item.doses, took: true, in: context))
         case .dose: done(viewModel.simpleTake(item.doses, in: context))
         case .asNeeded: if let row = item.asNeeded { done(viewModel.takeAsNeeded(row, in: context)) }
         case .stop: done(viewModel.putAwayStopsToday(in: context))

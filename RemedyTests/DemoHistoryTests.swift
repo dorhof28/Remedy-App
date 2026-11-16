@@ -137,4 +137,83 @@ import Testing
             try ExpectedAnswerReader.answer(for: ["Take 2 aspirin a day and call the office."])
         }
     }
+
+    @Test func theDemoKeepsThePapersDatesAndMovesTheClock() throws {
+        let scenario = DemoScenario.hssKnee
+        // loaded on nov 13, the day after surgery
+        let today = DayMath.date(forDay: 1, minute: 600, from: RuthDrafts.surgery)
+        #expect(scenario.fixedSurgery(today: today) == RuthDrafts.surgery)
+        // the clock moves 3 days so today is day 4, or to any day asked for
+        #expect(scenario.clockShift(today: today) == 3)
+        #expect(scenario.clockShift(today: today, day: -5) == -6)
+        guard case .papers(let drafts) = scenario.build(today: today) else { Issue.record("no papers"); return }
+        #expect(drafts.allSatisfy { $0.surgeryDate == RuthDrafts.surgery })
+        // home PT is on the printed monday, november 16
+        let visit = try #require(drafts.flatMap(\.appointments).first { $0.title.contains("Physical Therapy") })
+        #expect(DayMath.calendar.component(.day, from: visit.date) == 16)
+        // a year on the clock can't reach, so the papers move instead
+        let later = DayMath.date(forDay: 400, minute: 600, from: RuthDrafts.surgery)
+        #expect(scenario.fixedSurgery(today: later) == nil)
+        #expect(scenario.clockShift(today: later) == nil)
+    }
+
+    @Test func askAfterSurgeryAnswersFromTheDischargeOrder() throws {
+        let (plan, _, now) = try ruthPlan()
+        let answer = AskAnswers.answerWithCheck("Can I take Eliquis?", plan: plan, today: 4, now: now)
+        // the before-surgery disagreement is over, so it isn't the answer on day 4
+        #expect(!answer.text.contains("disagree"), "\(answer.text)")
+        #expect(answer.quote.contains("2 (two) times a day"), "\(answer.quote)")
+        // before surgery it still shows both papers
+        let before = AskAnswers.answerWithCheck("Can I take Eliquis?", plan: plan, today: -5,
+                                                now: DayMath.date(forDay: -5, minute: 600, from: RuthDrafts.surgery))
+        #expect(before.text.contains("disagree"), "\(before.text)")
+    }
+
+    @Test func simpleAsksAboutAMissedDoseAndNeverSaysTakeItNow() throws {
+        let (plan, context, now) = try ruthPlan()
+        DemoHistory.fill(plan, now: now, in: context)
+        let today = TodayViewModel(plan: plan, now: now)
+        let missed = try #require(today.simpleDayItems(checkInDone: false).first { $0.kind == .dose && $0.state == .late })
+        #expect(missed.title.hasPrefix("Did you take the 9 AM"), "\(missed.title)")
+        #expect(missed.detail == TodayScreen.missedAdvice)
+        #expect(SimpleHomeScreen.button(missed) == TodayScreen.missedYes)
+        #expect(SimpleHomeScreen.secondButton(missed) == TodayScreen.missedNo)
+        // yes logs it at 9 AM, not now
+        _ = today.simpleAnswerMissed(missed.doses, took: true, in: context)
+        let log = try #require(missed.doses.first?.slot.medicine.doseLogs.first { $0.scheduledFor == missed.sortDate })
+        #expect(log.status == .taken)
+        #expect(log.loggedAt == missed.sortDate)
+    }
+
+    @Test func checkInShowsTheDischargePapersWarningSigns() throws {
+        let (plan, _, now) = try ruthPlan()
+        let checkIn = CheckInViewModel(plan: plan, now: now)
+        #expect(checkIn.signs.count == 9)
+        // the paper sends chest pain to 911 and a fever to the surgeon's office
+        #expect(checkIn.signs.first { $0.text == "Chest pain" }?.phone == "911")
+        #expect(checkIn.signs.first { $0.text.hasPrefix("Temperature") }?.isEmergency == false)
+        #expect(checkIn.showsPainCall(8) && !checkIn.showsPainCall(7))
+    }
+
+    @Test func deleteAllDataLeavesNothingBehind() throws {
+        let (plan, context, now) = try ruthPlan()
+        DemoHistory.fill(plan, now: now, in: context)
+        #expect(try context.fetchCount(FetchDescriptor<CheckIn>()) > 0)
+        PlanActions.deleteEverything(in: context)
+        // check-ins, photos and office answers are not tied to the plan, so they are deleted on their own
+        #expect(try context.fetchCount(FetchDescriptor<CarePlan>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<CheckIn>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<DoseLog>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<PhotoEntry>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<PaperCheckNote>()) == 0)
+    }
+
+    @Test func warningSignsAreNotListedAsRules() throws {
+        let (plan, _, now) = try ruthPlan(at: 10 * 60)
+        let rules = RulesScreen(plan: plan, now: now).groups.flatMap(\.lines).map(\.title)
+        #expect(!rules.contains { $0.contains("Chest pain") || $0.contains("Temperature") }, "\(rules)")
+        #expect(rules.contains { $0.contains("No driving") })
+        // still in the check-in
+        #expect(CheckInViewModel(plan: plan, now: now).signs.contains { $0.text == "Chest pain" })
+    }
 }

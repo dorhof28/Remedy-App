@@ -48,7 +48,7 @@ import Testing
 
     @Test func explanationNamesWhoAndHowLongAfter() {
         let text = NewerPaperRule.explanation(.ask(.tooClose), newerGiver: .pharmacy, daysApart: 1)
-        #expect(text == "The newer paper is from the pharmacy, 1 day later, so Remedy doesn\u{2019}t pick.")
+        #expect(text == "The newer paper is from the pharmacy, 1 day later, so Remedy can\u{2019}t tell which is right.")
         let doctor = NewerPaperRule.explanation(.ask(.tooClose), newerGiver: .anotherDoctor, daysApart: 12)
         #expect(doctor.contains("another doctor, 12 days later"))
         #expect(NewerPaperRule.explanation(.newerWins(.fromSurgeryTeam), newerGiver: .hospital, daysApart: 3)

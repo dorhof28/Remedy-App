@@ -11,7 +11,7 @@ printed: 10/30/2026 3:42 PM
 ## Instructions  from Samuel Okafor
 You are cleared for your knee surgery from a heart standpoint. No further testing is needed before surgery.
 
-Hold Eliquis 2 days before surgery. Take your last dose on the morning of 11/10. Do not take it on 11/11 or the morning of surgery. You do not need Lovenox injections.
+Hold Eliquis 2 days before surgery. Take your last dose on 11/9. Do not take it on 11/10, 11/11 or the morning of surgery. You do not need Lovenox injections.
 
 Restart Eliquis 24 hours after surgery if your surgeon says it is safe.
 

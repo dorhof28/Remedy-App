@@ -70,7 +70,7 @@ extension PlanViewModel {
         result.append(DaySection(id: "todo", title: "To do", symbol: "checklist", tone: .caution, items: tasks))
 
         // instructions in effect that day
-        let rules = plan.rules.filter { DoseSchedule.isActive($0, on: picked) }
+        let rules = plan.rules.filter { !$0.isCallSign && DoseSchedule.isActive($0, on: picked) }
             .sorted { !$0.isAllowed && $1.isAllowed }
             .map { rule -> AgendaItem in
                 var note = rule.condition

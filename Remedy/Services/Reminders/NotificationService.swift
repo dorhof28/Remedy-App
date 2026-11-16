@@ -55,6 +55,8 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
 
         let settings = await center.notificationSettings()
         if settings.authorizationStatus == .notDetermined {
+            // screenshot and tour runs never get the system prompt
+            guard !LaunchOptions.skipsPermissionPrompts else { return }
             let allowed = (try? await center.requestAuthorization(options: [.alert, .sound, .badge])) ?? false
             guard allowed else { return }
         } else if settings.authorizationStatus == .denied {

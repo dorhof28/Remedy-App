@@ -83,7 +83,7 @@ struct PreviewWeekViewModel {
                         detail: medicine.onlyIf.isEmpty ? "Only when needed" : medicine.onlyIf)
         }
 
-        let rules = plan.rules.filter { DoseSchedule.isActive($0, on: day) }.map { rule in
+        let rules = plan.rules.filter { !$0.isCallSign && DoseSchedule.isActive($0, on: day) }.map { rule in
             PreviewLine(id: "r\(rule.persistentModelID.hashValue)",
                         title: rule.title,
                         detail: (rule.isAllowed ? "Allowed" : "Not yet") + (rule.condition.isEmpty ? "" : " \u{00B7} \(rule.condition)"))

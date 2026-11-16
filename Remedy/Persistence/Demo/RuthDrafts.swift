@@ -118,9 +118,10 @@ enum RuthDrafts {
         var d = base(paper: .beforeSurgery, source: .specialist, field: .heart, doctor: "Dr. Samuel Okafor",
                      printed: date(2026, 10, 30, hour: 15, minute: 42))
         d.medicines = [
+            // the last dose is 11/9, so nothing from 11/10 on
             DraftMedicine(name: "Apixaban (Eliquis)", alsoKnownAs: ["eliquis", "apixaban"], action: .stop, startDay: -2, endDay: 0, strength: "5 mg",
-                          reason: "Take your last dose on the morning of 11/10.", exception: "You do not need Lovenox injections.",
-                          quote: "Hold Eliquis 2 days before surgery. Take your last dose on the morning of 11/10.", quotePage: 1),
+                          reason: "Take your last dose on 11/9.", exception: "You do not need Lovenox injections.",
+                          quote: "Hold Eliquis 2 days before surgery. Take your last dose on 11/9.", quotePage: 1),
             DraftMedicine(name: "Apixaban (Eliquis)", alsoKnownAs: ["eliquis", "apixaban"], action: .okToTake, startDay: 1, strength: "5 mg",
                           onlyIf: "Your surgeon says it is safe",
                           quote: "Restart Eliquis 24 hours after surgery if your surgeon says it is safe.", quotePage: 1),
@@ -284,6 +285,25 @@ enum RuthDrafts {
                       quote: "No tub baths, hot tubs or swimming for 4 weeks.", quotePage: 5),
             DraftRule(title: "Wear your TED stockings during the day", isAllowed: true, condition: "You may take them off at night", startDay: 0, endDay: 28,
                       quote: "Wear your TED stockings during the day for 4 weeks. You may remove them at night.", quotePage: 5),
+            // warning signs, the office for the first six and 911 for the last three
+            DraftRule(title: "Temperature greater than 101.5", isAllowed: false, condition: "Call Dr. Whitfield\u{2019}s office", startDay: 0,
+                      quote: "Temperature greater than 101.5", quotePage: 6),
+            DraftRule(title: "Increased redness, warmth or drainage from your incision", isAllowed: false, condition: "Call Dr. Whitfield\u{2019}s office", startDay: 0,
+                      quote: "Increased redness, warmth or drainage from your incision", quotePage: 6),
+            DraftRule(title: "Pain not relieved by your pain medication", isAllowed: false, condition: "Call Dr. Whitfield\u{2019}s office", startDay: 0,
+                      quote: "Pain not relieved by your pain medication", quotePage: 6),
+            DraftRule(title: "Calf pain, swelling or tenderness", isAllowed: false, condition: "Call Dr. Whitfield\u{2019}s office", startDay: 0,
+                      quote: "Calf pain, swelling or tenderness", quotePage: 6),
+            DraftRule(title: "Bleeding that does not stop, blood in your urine or black stools", isAllowed: false, condition: "Call Dr. Whitfield\u{2019}s office", startDay: 0,
+                      quote: "Bleeding that does not stop, blood in your urine or black stools", quotePage: 6),
+            DraftRule(title: "No bowel movement for 3 days", isAllowed: false, condition: "Call Dr. Whitfield\u{2019}s office", startDay: 0,
+                      quote: "No bowel movement for 3 days", quotePage: 6),
+            DraftRule(title: "Chest pain", isAllowed: false, condition: "Call 911 or go to the nearest emergency room", startDay: 0,
+                      quote: "Chest pain", quotePage: 6),
+            DraftRule(title: "Shortness of breath or difficulty breathing", isAllowed: false, condition: "Call 911 or go to the nearest emergency room", startDay: 0,
+                      quote: "Shortness of breath or difficulty breathing", quotePage: 6),
+            DraftRule(title: "Coughing up blood", isAllowed: false, condition: "Call 911 or go to the nearest emergency room", startDay: 0,
+                      quote: "Coughing up blood", quotePage: 6),
         ]
         d.tasks = [
             DraftTask(title: "Pick up your new medicines at Lakeside Community Pharmacy", dueDay: 1,

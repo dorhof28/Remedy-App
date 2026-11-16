@@ -43,6 +43,11 @@ struct RemedyApp: App {
             let container = try ModelContainer(for: schema, configurations: configuration)
 
             if let scenario = LaunchOptions.demoScenario, !LaunchOptions.startsEmpty {
+                // papers with fixed dates turn demo mode on so the pretend clock can reach their day
+                if scenario.fixedSurgery(today: Date()) != nil {
+                    DemoMode.turnOn()
+                    DemoMode.setClock(for: scenario, day: LaunchOptions.demoPlanDay)
+                }
                 DemoMode.insert(scenario, into: container.mainContext)
             } else if LaunchOptions.usesSamplePlan && !LaunchOptions.startsEmpty {
                 // demoDay -4 means surgery is 4 days from today

@@ -243,7 +243,7 @@ extension TodayViewModel {
         guard let plan, plan.surgeryDate != nil, layout != .noPlan, layout != .needsSurgeryDate else { return [] }
         let arrival = DayChecklist.arrival(for: plan)
         let rows = plan.rules
-            .filter { DoseSchedule.isActive($0, on: day) }
+            .filter { !$0.isCallSign && DoseSchedule.isActive($0, on: day) }
             .map { rule -> TodayRuleRow in
                 let status = PlanWording.ruleStatus(rule, today: day, surgeryDate: surgeryDate)
                 let start = DoseSchedule.startDay(of: rule)

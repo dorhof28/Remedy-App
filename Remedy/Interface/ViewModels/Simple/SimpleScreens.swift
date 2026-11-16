@@ -54,7 +54,9 @@ struct SimpleHomeScreen {
     // the big button in the patient's words, nil when there is nothing to press
     static func button(_ item: SimpleDayItem) -> String? {
         switch item.kind {
-        case .dose: return item.buttonTitle == nil ? nil : "I Took It"
+        case .dose:
+            guard item.buttonTitle != nil else { return nil }
+            return item.state == .late ? TodayScreen.missedYes : "I Took It"
         case .asNeeded: return item.buttonTitle == nil ? nil : "I Took One"
         case .stop:
             guard item.buttonTitle != nil else { return nil }
@@ -64,6 +66,11 @@ struct SimpleHomeScreen {
         case .fillIn: return "Add It Now"
         case .visit, .surgery, .rule: return nil
         }
+    }
+
+    // the second big button, only "No, I Missed It" on a missed dose
+    static func secondButton(_ item: SimpleDayItem) -> String? {
+        item.kind == .dose && item.state == .late && item.buttonTitle != nil ? TodayScreen.missedNo : nil
     }
 
     // one tile on the home screen
@@ -112,7 +119,8 @@ enum SimpleMyDayWords {
 
     // a dose card says so when a dose of the same medicine was missed today
     static func showsMissedNote(_ item: SimpleDayItem, in items: [SimpleDayItem]) -> Bool {
-        guard item.kind == .dose, item.state != .done, let medicine = item.medicine else { return false }
+        // the missed question already says it
+        guard item.kind == .dose, item.state != .done, item.state != .late, let medicine = item.medicine else { return false }
         return items.contains { other in
             other.kind == .dose && other.state == .late && other.medicine?.persistentModelID == medicine.persistentModelID
         }

@@ -20,6 +20,11 @@ nonisolated struct WarningSign: Identifiable, Equatable {
 nonisolated enum WarningSigns {
 
     // a rule that says to call or get help
+    // a "call your doctor for" line from the papers, shown in the check-in and help, never as a rule
+    static func isCallSign(isAllowed: Bool, condition: String) -> Bool {
+        !isAllowed && condition.trimmingCharacters(in: .whitespaces).lowercased().hasPrefix("call")
+    }
+
     static func isWarning(title: String, condition: String, quote: String, isAllowed: Bool) -> Bool {
         guard !isAllowed else { return false }
         let words = "\(title) \(condition) \(quote)".lowercased()

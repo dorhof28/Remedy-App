@@ -46,7 +46,7 @@ struct CheckInViewModel {
     let painScale = "0 is no pain. 10 is the worst."
     let signsTitle = "Do you have any of these?"
     let signsHint = "These come from your own papers."
-    let noSignsText = "Your papers don\u{2019}t list warning signs. If something worries you, call your care team."
+    let noSignsText = "Your papers don\u{2019}t list warning signs. Help shows common ones. If something worries you, call your care team."
     let noteTitle = "Anything to add? (optional)"
     let saveTitle = "Save check-in"
     let savedText = "Saved. See you tomorrow."

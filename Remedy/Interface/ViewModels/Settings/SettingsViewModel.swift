@@ -33,7 +33,7 @@ struct SettingsViewModel {
     let clearChatTitle = "Clear chat"
     let clearChatMessage = "This deletes your questions and answers. Your plan stays."
     let deletePlanTitle = "Delete my plan"
-    let deletePlanMessage = "This deletes your plan, medicines and doses from this phone. You can scan your papers again."
+    let deletePlanMessage = "This deletes your plan, medicines, doses, check-ins, photos and chat from this phone. You can scan your papers again."
     let aboutTitle = "About"
     let versionLabel = "Version"
     // the brand line under settings and on the about page
@@ -263,11 +263,9 @@ struct SettingsViewModel {
         ChatActions.deleteAll(in: context)
     }
 
-    // deletes everything
+    // deletes everything, not only the plan, so a new plan never picks up old check-ins or photos
     func deletePlan(in context: ModelContext) {
-        guard let plan else { return }
-        ChatActions.deleteAll(in: context)
-        PlanActions.deletePlan(plan, in: context)
+        PlanActions.deleteEverything(in: context)
     }
 }
 

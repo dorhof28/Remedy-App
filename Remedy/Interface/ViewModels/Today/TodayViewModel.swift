@@ -421,7 +421,7 @@ struct TodayViewModel {
 
     var notYetRows: [TodayRow] {
         (plan?.rules ?? [])
-            .filter { !$0.isAllowed && DoseSchedule.isActive($0, on: day) }
+            .filter { !$0.isAllowed && !$0.isCallSign && DoseSchedule.isActive($0, on: day) }
             .prefix(3)
             .map { rule in
                 let status = PlanWording.ruleStatus(rule, today: day, surgeryDate: surgeryDate)

@@ -104,6 +104,17 @@ enum LaunchOptions {
         days == 0 ? date : (DayMath.calendar.date(byAdding: .day, value: days, to: date) ?? date)
     }
 
+    // DEBUG ONLY which day after surgery a fixed-date demo opens on, negative is before
+    // negative numbers need defaults write, a launch argument can't start with a minus
+    static var demoPlanDay: Int? {
+        #if DEBUG
+        guard UserDefaults.standard.object(forKey: "demoPlanDay") != nil else { return nil }
+        return UserDefaults.standard.integer(forKey: "demoPlanDay")
+        #else
+        return nil
+        #endif
+    }
+
     // which day of the plan today is for the sample patient
     static var demoDay: Int {
         #if DEBUG

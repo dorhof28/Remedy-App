@@ -80,7 +80,7 @@ Debug builds only (`LaunchOptions`, `#if DEBUG`):
 | Option | Effect |
 |---|---|
 | `-demoSamplePlan YES -demoDay N` | Loads the Avery Quinn sample plan, today = day N after surgery (negative = before) |
-| `-demoScenario <name>` | Loads one of the 15 demo patients (`DemoScenario`) |
+| `-demoScenario <name>` | Loads one of the 16 demo patients (`DemoScenario`) |
 | `-demoTime HH:mm` | Fixes the clock |
 | `-demoWelcome YES -demoScreen importPick\|reader\|pages\|hardPage\|cloud\|setup` | Starts with no plan and opens one first-run screen |
 | `-appLookMode classic\|simple\|automatic` | Picks the look |

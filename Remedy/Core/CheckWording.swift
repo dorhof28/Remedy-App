@@ -72,7 +72,7 @@ nonisolated extension Finding {
         let ask = askByDay.map { "by \(DayMath.shortDate(forDay: $0, from: surgeryDate))" } ?? "now"
         let until = rule == .noPrintedDate ? "\(reason). Until you choose" : "Until you hear back"
         return CheckMessage(color: .red, headline: "Your papers disagree",
-                            detail: "\(until), Remedy follows the paper from \(followedDoctor). Ask your care team \(ask).",
+                            detail: "\(until), reminders use the paper from \(followedDoctor). That isn\u{2019}t Remedy saying it\u{2019}s right. Ask your care team \(ask).",
                             oneLine: "Your papers disagree. Ask your care team \(ask).", quotes: quotes)
     }
 

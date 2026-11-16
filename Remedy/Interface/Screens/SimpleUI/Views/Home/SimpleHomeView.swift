@@ -238,6 +238,16 @@ struct SimpleHomeView: View {
                 .buttonStyle(SimpleButtonStyle())
                 .disabled(isTakingDose)
                 .padding(.top, 8)
+            }
+            // a missed dose also gets the no answer, never a catch-up dose
+            if let second = SimpleHomeScreen.secondButton(item) {
+                Button {
+                    done(viewModel.simpleAnswerMissed(item.doses, took: false, in: context))
+                } label: {
+                    Label(second, systemImage: "xmark")
+                }
+                .buttonStyle(SimpleButtonStyle(kind: .gray))
+                .disabled(isTakingDose)
             } else if let appointment = item.appointment {
                 NavigationLink(value: appointment) { Text("See the Visit") }
                     .buttonStyle(SimpleButtonStyle(kind: .gray))
@@ -274,6 +284,9 @@ struct SimpleHomeView: View {
     // the card's main button
     private func perform(_ item: SimpleDayItem, _ viewModel: TodayViewModel) {
         switch item.kind {
+        case .dose where item.state == .late:
+            // yes logs it at the time it was due
+            done(viewModel.simpleAnswerMissed(item.doses, took: true, in: context))
         case .dose:
             takeDoses(item.doses, viewModel)
         case .stop:

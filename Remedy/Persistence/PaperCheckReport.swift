@@ -57,6 +57,12 @@ struct PaperCheckReport {
         return nil
     }
 
+    // true when the finding compares this line itself
+    func includes(_ finding: Finding, _ medicine: MedicineInstruction) -> Bool {
+        guard let index = medicines.firstIndex(where: { $0.persistentModelID == medicine.persistentModelID }) else { return false }
+        return finding.items.contains { $0.id == index }
+    }
+
     // the line of the paper the app follows for a finding on a day, nil while an open circle follows none
     func followed(_ finding: Finding, onDay day: Int) -> MedicineInstruction? {
         let paperID = finding.followedPaperID(onDay: day)
@@ -115,11 +121,18 @@ extension AskAnswers {
     static func answerWithCheck(_ question: String, plan: CarePlan, today: Int, now: Date) -> AskAnswer {
         let report = PaperCheckReport.of(plan)
         return answer(question, plan: plan, today: today, now: now) { medicine, surgeryDate in
-            if let found = report.message(for: medicine, surgeryDate: surgeryDate) {
-                return (found.message, report.followed(found.finding, onDay: today))
+            // an open disagreement about the medicine always shows, whichever line was named
+            // other checks only when they compare this very line, and none whose days are over
+            let all = report.findings(for: medicine)
+            let own = all.filter { report.includes($0, medicine) }
+            for finding in all where !finding.isOver(today: today)
+                && ((finding.color == .red && !finding.isResolved) || report.includes(finding, medicine)) {
+                if let message = finding.message(surgeryDate: surgeryDate) {
+                    return (message, report.followed(finding, onDay: today))
+                }
             }
             // the surgery team's paper covers it, answer from the line followed today with no note
-            return report.findings(for: medicine).first { $0.rule == .surgeryTeamCovers }
+            return own.first { $0.rule == .surgeryTeamCovers }
                 .map { (nil, report.followed($0, onDay: today)) }
         }
     }

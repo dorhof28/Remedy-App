@@ -62,19 +62,22 @@ enum DemoMode {
         if !store.exists {
             try store.save(try BackupSnapshot.make(from: context))
         }
-        // the fake clock starts at today before the plan is made, so its past days are filled up to now
-        defaults.set(0, forKey: LaunchOptions.demoShiftKey)
+        // the fake clock starts at the plan's today before it is made, so its past days are filled up to now
+        let wasOn = defaults.bool(forKey: LaunchOptions.demoModeKey)
+        let oldShift = defaults.integer(forKey: LaunchOptions.demoShiftKey)
+        defaults.set(true, forKey: LaunchOptions.demoModeKey)
+        setClock(for: scenario, defaults: defaults)
         do {
             for type in RemedySchema.models { try deleteAll(type, in: context) }
             insert(scenario, into: context)
             try context.save()
         } catch {
-            // nothing half done, the old plan stays
+            // nothing half done, the old plan and its clock stay
             context.rollback()
+            defaults.set(wasOn, forKey: LaunchOptions.demoModeKey)
+            defaults.set(oldShift, forKey: LaunchOptions.demoShiftKey)
             throw error
         }
-        defaults.set(true, forKey: LaunchOptions.demoModeKey)
-        defaults.set(0, forKey: LaunchOptions.demoShiftKey)
         defaults.set(scenario.title, forKey: LaunchOptions.demoLoadedKey)
     }
 
@@ -90,6 +93,12 @@ enum DemoMode {
     // the flag every demo check reads
     static func turnOn(defaults: UserDefaults = .standard) {
         defaults.set(true, forKey: LaunchOptions.demoModeKey)
+    }
+
+    // real today for most plans, papers with fixed dates move it to the plan's day
+    static func setClock(for scenario: DemoScenario, day: Int? = nil, defaults: UserDefaults = .standard) {
+        let shift = scenario.clockShift(today: Date(), day: day) ?? 0
+        defaults.set(shift, forKey: LaunchOptions.demoShiftKey)
     }
 
     // also resets the fake clock

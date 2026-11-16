@@ -95,7 +95,7 @@ struct SettingsScreen {
     let clearChat = "Clear Chat"
     let deleteAll = "Delete All Data"
     let deleteAllAction = "Delete All Remedy Data"
-    let deleteAllMessage = "This removes your plan, papers, dose log and chat from this iPhone. It can\u{2019}t be undone."
+    let deleteAllMessage = "This removes your plan, papers, dose log, check-ins, photos, chat and the names to hide from this iPhone. AI keys and settings stay. It can\u{2019}t be undone."
     let clearChatMessage = "This deletes the questions and answers on this iPhone. Your plan stays."
 
     // "Plan made by: Apple cloud"

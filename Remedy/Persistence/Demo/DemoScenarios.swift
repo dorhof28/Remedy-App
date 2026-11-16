@@ -146,6 +146,22 @@ enum DemoScenario: String, CaseIterable, Identifiable {
         }
     }
 
+    // papers with their own printed dates keep them and the demo clock moves instead
+    // nil once the papers are too far from today for the pretend clock to reach
+    func fixedSurgery(today: Date) -> Date? {
+        guard self == .hssKnee else { return nil }
+        let days = DayMath.calendar.dateComponents([.day], from: DayMath.calendar.startOfDay(for: today), to: RuthDrafts.surgery).day ?? 0
+        return abs(days) < LaunchOptions.maxDayShift - 30 ? RuthDrafts.surgery : nil
+    }
+
+    // days to move the clock so today is this many days after the fixed surgery, negative is before
+    func clockShift(today: Date, day: Int? = nil) -> Int? {
+        guard let surgery = fixedSurgery(today: today) else { return nil }
+        let target = LaunchOptions.shifted(surgery, byDays: day ?? -surgeryInDays)
+        let days = DayMath.calendar.dateComponents([.day], from: DayMath.calendar.startOfDay(for: today), to: target).day ?? 0
+        return LaunchOptions.clampedShift(days)
+    }
+
     // the recipe for this scenario, dated from today
     func build(today: Date) -> Build {
         let days = surgeryInDays
@@ -153,6 +169,8 @@ enum DemoScenario: String, CaseIterable, Identifiable {
         case .surgeryIn10Days, .surgeryTomorrow, .surgeryToday, .threeDaysAfter, .threeWeeksAfter, .longAgo:
             return .samplePlan(surgeryInDays: days)
         case .hssKnee:
+            // the printed papers say november 12, so the plan does too
+            if fixedSurgery(today: today) != nil { return .papers(RuthDrafts.withPages()) }
             return .papers(Self.rebased(RuthDrafts.withPages(), surgeryIn: days, today: today))
         case .beforeOnly:
             return .papers(Self.rebased([DianeDrafts.beforeSurgery()], surgeryIn: days, today: today))

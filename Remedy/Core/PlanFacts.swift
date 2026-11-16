@@ -115,3 +115,8 @@ protocol PlanFacts {
     var appointments: [Visit] { get }
     var contacts: [Contact] { get }
 }
+
+extension RuleFacts {
+    // warning signs ride along as rules but are not something to do or not do
+    var isCallSign: Bool { WarningSigns.isCallSign(isAllowed: isAllowed, condition: condition) }
+}

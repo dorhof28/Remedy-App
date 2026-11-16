@@ -58,7 +58,7 @@ struct PaperCheckCardData: Identifiable {
     var question: String = ""
     // "Ask by Friday." or "Ask today."
     var askByText: String = ""
-    // "Until you hear back, Remedy follows Dr. Rao's paper."
+    // "Until you hear back, reminders use Dr. Rao's paper."
     var followLine: String = ""
     // "Dr. Rao's paper", "" for a circle
     var followingPaper: String = ""
@@ -109,7 +109,7 @@ struct PaperCheckViewModel {
     static let sortItOutTitle = "Sort it out"
     static let callTitle = "Call"
     static let sheetSubtitle = "Your papers say different things."
-    static let followingBadge = "Following"
+    static let followingBadge = "Reminders use"
     static let doThisFirst = "Do this first"
     static let updatedWord = "Updated"
     static let seeBothTitle = "See both"
@@ -216,7 +216,7 @@ struct PaperCheckViewModel {
             card.followingPaper = paper
             card.followingMeaning = meaning(of: item)
             let until = finding.rule == .noPrintedDate ? "Until you choose" : "Until you hear back"
-            card.followLine = "\(until), Remedy follows \(paper)."
+            card.followLine = "\(until), reminders use \(paper)."
         }
         if let undated = finding.items.first(where: { $0.printedDate == nil }) {
             card.noDateLine = "\(SimpleWording.capitalized(Self.paperName(undated))) has no date, so Remedy can\u{2019}t tell which is newer."
