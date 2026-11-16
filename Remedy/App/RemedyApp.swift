@@ -2,7 +2,7 @@
 //  RemedyApp.swift
 //  Remedy
 //
-//  Created by Dorron Hoffman on 10/24/26.
+//  Created by Dorron Hoffman on 5/24/26.
 //
 //  app start opens the database and shows rootview
 //
@@ -10,7 +10,7 @@
 import SwiftUI
 import SwiftData
 
-// the app: opens the database and shows the root view
+// app opens the database and shows the root view
 @main
 struct RemedyApp: App {
 

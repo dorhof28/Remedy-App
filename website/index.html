@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remedy: surgery papers as a daily plan</title>
+<meta name="description" content="Remedy is an iPhone app that reads a patient's surgery papers, checks them against each other, and shows what to take, what to stop, and who to call each day.">
+<meta name="theme-color" content="#FDD3DC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="img/favicon-64.png">
+<link rel="apple-touch-icon" href="img/icon-180.png">
+<link rel="preload" as="image" href="img/shots/after-classic-01-today.jpg">
+<link rel="stylesheet" href="styles.css">
+<script>if (!matchMedia("(prefers-reduced-motion: reduce)").matches) document.documentElement.classList.add("motion");</script>
+</head>
+<body>
+<!-- chrome:header -->
+<a class="skip" href="#main">Skip to content</a>
+<div class="nav-shell">
+  <nav class="nav" aria-label="Main">
+    <a class="brand" href="index.html"><img src="img/icon-180.png" alt="" width="44" height="44">Remedy</a>
+    <ul class="nav-links">
+      <li><a href="index.html#how">How it works</a></li>
+      <li><a href="features.html">Features</a></li>
+      <li><a href="technology.html">Technology</a></li>
+      <li><a href="demo.html">Demo</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a class="btn btn-teal" href="contact.html">Contact us</a>
+      <button class="menu-btn" aria-expanded="false" aria-controls="menu" aria-label="Menu">
+        <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true"><path d="M1 1h18M1 7h18M1 13h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </nav>
+  <div class="menu-panel" id="menu">
+    <a href="index.html" aria-current="page">Home</a>
+    <a href="index.html#how">How it works</a>
+    <a href="features.html">Features</a>
+    <a href="technology.html">Technology</a>
+    <a href="demo.html">Demo</a>
+    <a href="contact.html">Contact us</a>
+  </div>
+</div>
+<!-- /chrome:header -->
+
+<main id="main">
+
+  <section class="hero">
+    <div class="blob blob-mint" aria-hidden="true"></div>
+    <div class="blob blob-pink" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div>
+        <p class="pill-note"><img src="img/icon-180.png" alt="">For iPhone, before and after surgery</p>
+        <h1>Surgery papers, turned into a plan for each day.</h1>
+        <p class="lede">Remedy reads the pages a patient brings home, checks them against each other, and shows what to do today, one step at a time.</p>
+        <div class="btn-row">
+          <a class="btn btn-teal" href="#tour">See the app</a>
+          <a class="btn btn-plain" href="contact.html">Contact us</a>
+        </div>
+        <p class="hero-note">Shown: Ruth, a made-up patient, 4 days after knee replacement, with her four sample papers.</p>
+      </div>
+      <div class="stage" aria-hidden="true">
+        <figure class="paper"><img src="img/papers/D1-internist-preop.jpg" alt="" width="820" height="1061"></figure>
+        <figure class="paper"><img src="img/papers/D2-cardiology-letter.jpg" alt="" width="820" height="1061"></figure>
+        <figure class="paper"><img src="img/papers/D3-surgeon-preop.jpg" alt="" width="820" height="1061"></figure>
+        <figure class="paper"><img src="img/papers/D4-discharge.jpg" alt="" width="820" height="1061"></figure>
+        <div class="iphone"><div class="screen"><img src="img/shots/after-classic-01-today.jpg" alt="" width="900" height="1955" fetchpriority="high"></div></div>
+        <span class="chip chip-a"><i class="dot" style="background:#B3261E"></i>Papers disagree: Eliquis</span>
+        <span class="chip chip-b"><i class="dot" style="background:#158069"></i>Due 2:00 PM: acetaminophen</span>
+        <span class="chip chip-c"><i class="dot" style="background:#FCC3D5"></i>Eliquis restarts Sat, Nov 14</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="band band-pink" aria-labelledby="why-h">
+    <div class="wrap">
+      <div class="head" data-reveal>
+        <h2 id="why-h">Paper instructions break down at home.</h2>
+      </div>
+      <ul class="stats">
+        <li class="stat" data-reveal style="--i:0">
+          <span class="num"><span>40–</span><span data-count="80" data-suffix="%">80%</span></span>
+          <p>of what a doctor tells a patient is forgotten almost right away.</p>
+          <cite>Kessels, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC539473/">J R Soc Med, 2003</a></cite>
+        </li>
+        <li class="stat" data-reveal style="--i:1">
+          <span class="num" data-count="43" data-suffix="%">43%</span>
+          <p>of patients correctly recalled their medicine changes one to two days after discharge. 90% felt sure they knew.</p>
+          <cite><a href="https://jointcommission.org/resources/news-and-multimedia/news/2023/01/assessing-how-much-inpatient-care-information-patients-retain--after-hospital-discharge">Jt Comm J Qual Patient Saf, 2023</a></cite>
+        </li>
+        <li class="stat" data-reveal style="--i:2">
+          <span class="num" data-count="19" data-suffix="%">19%</span>
+          <p>of patients had an adverse event after leaving the hospital. Two thirds of those were caused by medicines.</p>
+          <cite>Forster et al., <a href="https://www.cmaj.ca/content/170/3/345">CMAJ, 2004</a></cite>
+        </li>
+      </ul>
+      <p class="after-stats" data-reveal>Before surgery it gets harder: the surgeon, a family doctor and a heart doctor may each send a page, and they don't always agree.</p>
+    </div>
+  </section>
+
+  <section class="band" id="how" aria-labelledby="how-h">
+    <div class="wrap">
+      <div class="head head-center" data-reveal>
+        <h2 id="how-h">How it works</h2>
+        <p>Add the papers, check each line, then follow the plan. New papers can join at any time.</p>
+      </div>
+      <ol class="steps">
+        <li data-reveal style="--i:0">
+          <div class="step-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"/><path d="M8 9h8M8 12h8M8 15h5"/></svg></div>
+          <div><h3>Add the papers</h3><p>Scan with the camera, pick photos or PDFs, or import from MyChart. Names are blacked out on the phone first.</p></div>
+        </li>
+        <li data-reveal style="--i:1">
+          <div class="step-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8h10M7 12h6"/><path d="M5 4h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-6l-4 4v-4H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/></svg></div>
+          <div><h3>Check each line</h3><p>Every item shows the paper's exact words. Nothing joins the plan until the patient taps This Is Right.</p></div>
+        </li>
+        <li data-reveal style="--i:2">
+          <div class="step-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>
+          <div><h3>Follow the day</h3><p>Doses, stop days, visits and check-ins arrive on time, with reminders, Calendar and widgets.</p></div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="band band-mint" id="tour" aria-labelledby="tour-h">
+    <div class="wrap">
+      <div class="head" data-reveal>
+        <h2 id="tour-h">See the app</h2>
+        <p>Real screens from Ruth's demo plan. Tap any one.</p>
+      </div>
+      <div class="tour">
+        <ul class="tour-list" role="tablist" aria-label="App screens">
+          <li><button class="tour-item" role="tab" data-cap="Day 4 at home, 2:00 PM"><b>What to do now</b><span>The dose due now comes first, with one tap to log it.</span><i class="bar"><i></i></i></button></li>
+          <li><button class="tour-item" role="tab" data-cap="Day 4 at home"><b>A missed dose is a question</b><span>"Did you take the 9 AM apixaban?" It never says to take an extra one.</span><i class="bar"><i></i></i></button></li>
+          <li><button class="tour-item" role="tab" data-cap="5 days before surgery"><b>Papers that disagree</b><span>Both doctors' words side by side, and a button to call the office.</span><i class="bar"><i></i></i></button></li>
+          <li><button class="tour-item" role="tab" data-cap="Home, day 1"><b>Pain pills within the limits</b><span>"Not yet. Next one at 6:05 PM." The daily limit comes from the paper.</span><i class="bar"><i></i></i></button></li>
+          <li><button class="tour-item" role="tab" data-cap="Day 4 at home"><b>Ask your papers</b><span>"Can I take a bath?" Not yet, with the exact quote from page 5.</span><i class="bar"><i></i></i></button></li>
+          <li><button class="tour-item" role="tab" data-cap="Day 4 at home"><b>Daily check-in</b><span>Pain of 8 or more brings up a button to call the surgeon's office.</span><i class="bar"><i></i></i></button></li>
+          <li><button class="tour-item" role="tab" data-cap="Day 4 at home"><b>The whole recovery on one timeline</b><span>Every stop, restart and visit in date order.</span><i class="bar"><i></i></i></button></li>
+          <li><button class="tour-item" role="tab" data-cap="The Simple look, day 4"><b>A simpler look</b><span>Large type and one thing at a time, for anyone who finds phones hard.</span><i class="bar"><i></i></i></button></li>
+        </ul>
+        <div class="tour-phone" data-reveal="zoom">
+          <div class="iphone">
+            <div class="screen">
+              <img class="swap on" src="img/shots/after-classic-01-today.jpg" alt="Today screen with acetaminophen due at 2 PM" width="900" height="1955">
+              <img class="swap" src="img/shots/after-classic-03-missed-dose-question.jpg" alt="Sheet asking whether the 9 AM apixaban was taken" width="900" height="1955" loading="lazy">
+              <img class="swap" src="img/shots/before-classic-03-papers-disagree.jpg" alt="Papers Disagree screen for apixaban" width="900" height="1955" loading="lazy">
+              <img class="swap" src="img/shots/surgery-day-day1-classic-05-oxycodone.jpg" alt="Oxycodone detail: not yet, next one at 6:05 PM" width="900" height="1955" loading="lazy">
+              <img class="swap" src="img/shots/after-classic-48-ask-bath.jpg" alt="Ask answer: can I take a bath, not yet, with a quote" width="900" height="1955" loading="lazy">
+              <img class="swap" src="img/shots/after-classic-09-pain-8-call-surgeon.jpg" alt="Check-in with a Call Surgeon's Office button" width="900" height="1955" loading="lazy">
+              <img class="swap" src="img/shots/after-classic-34-timeline.jpg" alt="Recovery timeline" width="900" height="1955" loading="lazy">
+              <img class="swap" src="img/shots/after-simple-01-home.jpg" alt="Simple home screen with one big button" width="900" height="1955" loading="lazy">
+            </div>
+          </div>
+          <p class="tour-cap" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band band-teal" aria-labelledby="safe-h">
+    <div class="wrap">
+      <div class="head" data-reveal>
+        <h2 id="safe-h">Built so it can't guess.</h2>
+        <p>AI reads the pages. Doses, days and which paper to follow come from fixed rules with automated tests.</p>
+      </div>
+      <ul class="promises">
+        <li data-reveal style="--i:0"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg><h3>No AI medical calls</h3><p>AI never sets a dose, a day or which paper wins.</p></li>
+        <li data-reveal style="--i:1"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><h3>Disagreements stay visible</h3><p>Remedy shows both papers' words and asks the patient to call.</p></li>
+        <li data-reveal style="--i:2"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><h3>The patient confirms</h3><p>Each item is checked against its quote before it joins the plan.</p></li>
+        <li data-reveal style="--i:3"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><h3>Private by default</h3><p>Reading can stay on the iPhone. Names are hidden before any page leaves it.</p></li>
+      </ul>
+      <p style="margin-top:32px" data-reveal><a class="btn btn-white" href="technology.html">How the rules work</a></p>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="hss-h">
+    <div class="wrap">
+      <div class="head" data-reveal><h2 id="hss-h">What clinicians at Hospital for Special Surgery said</h2></div>
+      <ul class="quotes">
+        <li data-reveal style="--i:0"><figure><blockquote>My patients struggle to recall what they should do with their medications; this will be so helpful!</blockquote><figcaption>Hospital for Special Surgery</figcaption></figure></li>
+        <li data-reveal style="--i:1"><figure><blockquote>I often have patients who sit in my office and manually enter the dates into their calendar. This does it for them! Brilliant!!</blockquote><figcaption>Hospital for Special Surgery</figcaption></figure></li>
+        <li data-reveal style="--i:2"><figure><blockquote>The safety of our surgeries and anesthesia often relies on patients timing their medications correctly. This is a fantastic tool!</blockquote><figcaption>Hospital for Special Surgery</figcaption></figure></li>
+      </ul>
+    </div>
+  </section>
+
+  <section aria-label="Contact">
+    <div class="wrap">
+      <div class="cta" data-reveal="zoom">
+        <div>
+          <h2>Bring Remedy to your patients.</h2>
+          <p>Write to us about a pilot or trial, or book a live walkthrough with the sample patient.</p>
+        </div>
+        <div class="btn-row">
+          <a class="btn btn-teal" href="contact.html?reason=Clinical%20pilot%20or%20trial">Contact us</a>
+          <a class="btn btn-plain" href="demo.html">Demo library</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- chrome:footer -->
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <a class="brand" href="index.html"><img src="img/icon-180.png" alt="" width="32" height="32">Remedy</a>
+        <p>Surgery papers, turned into a plan for each day. Built by Dorron Hoffman and Nikhil Shah in Bergen County, New Jersey.</p>
+      </div>
+      <div>
+        <h4>The app</h4>
+        <ul><li><a href="index.html#how">How it works</a></li><li><a href="features.html">Features</a></li><li><a href="technology.html">Technology</a></li></ul>
+      </div>
+      <div>
+        <h4>Work with us</h4>
+        <ul><li><a href="demo.html">Demo library</a></li><li><a href="contact.html">Contact us</a></li><li><a href="contact.html?reason=Clinical%20pilot%20or%20trial">Pilots and trials</a></li></ul>
+      </div>
+    </div>
+    <p class="foot-legal">Remedy helps patients read their own papers. It does not replace their doctor, is not a medical device, and has not been clinically validated. Every patient, paper and phone number on this site is made up.</p>
+  </div>
+</footer>
+<script src="site.js" defer></script>
+<!-- /chrome:footer -->
+</body>
+</html>

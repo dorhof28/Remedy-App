@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact Remedy</title>
+<meta name="description" content="Contact the Remedy team about clinical pilots and trials, hospital partnerships, or a live demo.">
+<meta name="theme-color" content="#FDD3DC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="img/favicon-64.png">
+<link rel="apple-touch-icon" href="img/icon-180.png">
+<link rel="stylesheet" href="styles.css">
+<script>if (!matchMedia("(prefers-reduced-motion: reduce)").matches) document.documentElement.classList.add("motion");</script>
+</head>
+<body>
+<!-- chrome:header -->
+<a class="skip" href="#main">Skip to content</a>
+<div class="nav-shell">
+  <nav class="nav" aria-label="Main">
+    <a class="brand" href="index.html"><img src="img/icon-180.png" alt="" width="44" height="44">Remedy</a>
+    <ul class="nav-links">
+      <li><a href="index.html#how">How it works</a></li>
+      <li><a href="features.html">Features</a></li>
+      <li><a href="technology.html">Technology</a></li>
+      <li><a href="demo.html">Demo</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a class="btn btn-teal" href="contact.html" aria-current="page">Contact us</a>
+      <button class="menu-btn" aria-expanded="false" aria-controls="menu" aria-label="Menu">
+        <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true"><path d="M1 1h18M1 7h18M1 13h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </nav>
+  <div class="menu-panel" id="menu">
+    <a href="index.html">Home</a>
+    <a href="index.html#how">How it works</a>
+    <a href="features.html">Features</a>
+    <a href="technology.html">Technology</a>
+    <a href="demo.html">Demo</a>
+    <a href="contact.html" aria-current="page">Contact us</a>
+  </div>
+</div>
+<!-- /chrome:header -->
+
+<main id="main">
+
+  <header class="page-head">
+    <div class="blob blob-mint" aria-hidden="true"></div>
+    <div class="blob blob-pink" aria-hidden="true"></div>
+    <div class="wrap">
+      <h1>Contact us</h1>
+      <p class="lede">For clinical pilots and trials, hospital partnerships, a live demo, or just to talk.</p>
+    </div>
+  </header>
+
+  <div class="wrap contact-grid">
+
+    <form id="contact-form" novalidate data-reveal="left">
+      <div class="row2">
+        <div><label for="name">Name</label><input id="name" name="name" type="text" autocomplete="name" required></div>
+        <div><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" required></div>
+      </div>
+      <div><label for="org">Hospital or organization <span class="muted">(optional)</span></label><input id="org" name="org" type="text" autocomplete="organization"></div>
+      <fieldset>
+        <legend>What's this about?</legend>
+        <div class="choice">
+          <input type="radio" name="reason" id="r1" value="Clinical pilot or trial" checked><label for="r1">Clinical pilot or trial</label>
+          <input type="radio" name="reason" id="r2" value="Partnership"><label for="r2">Partnership</label>
+          <input type="radio" name="reason" id="r3" value="Live demo"><label for="r3">Live demo</label>
+          <input type="radio" name="reason" id="r4" value="Something else"><label for="r4">Something else</label>
+        </div>
+      </fieldset>
+      <div><label for="message">Message</label><textarea id="message" name="message" rows="6" required></textarea></div>
+      <p class="form-error" role="alert"></p>
+      <div><button class="btn btn-teal" type="submit">Write email</button></div>
+      <p class="form-note">Opens your email app with the message filled in. Nothing is sent from this page. Please don't include patient information.</p>
+    </form>
+
+    <aside data-reveal="right">
+      <section class="side-card mint" aria-labelledby="pilot-h">
+        <h2 id="pilot-h">For a pilot or trial</h2>
+        <ul>
+          <li><b>The surgery</b><span>For example, knee or hip replacement</span></li>
+          <li><b>About how many patients a month</b><span>A rough number is fine</span></li>
+          <li><b>Which papers they go home with</b><span>Pre-op letters, discharge instructions, After Visit Summaries</span></li>
+        </ul>
+      </section>
+      <section class="side-card pink" aria-labelledby="who-h">
+        <h2 id="who-h">Who you'll hear from</h2>
+        <div class="people">
+          <div class="person"><span class="avatar" style="background:var(--mint)" aria-hidden="true">DH</span><div><b>Dorron Hoffman</b><span>Developer</span></div></div>
+          <div class="person"><span class="avatar" style="background:var(--pink)" aria-hidden="true">NS</span><div><b>Nikhil Shah</b><span>Developer</span></div></div>
+        </div>
+        <p class="muted small" style="margin:14px 0 0">Bergen County, New Jersey</p>
+        <a class="mail-link" href="mailto:dorron.hoffman@icloud.com">dorron.hoffman@icloud.com</a>
+      </section>
+    </aside>
+
+  </div>
+
+  <section class="band" aria-labelledby="faq-h">
+    <div class="wrap faq">
+      <h2 id="faq-h" data-reveal>Common questions</h2>
+      <details>
+        <summary>Is Remedy a medical device?</summary>
+        <p>No. Remedy helps patients read their own papers and keep to the plan their doctors wrote. It doesn't replace their doctor and hasn't been clinically validated.</p>
+      </details>
+      <details>
+        <summary>Where does patient data live?</summary>
+        <p>On the patient's iPhone. The plan isn't synced to any server. Backups are one password-locked file the patient keeps.</p>
+      </details>
+      <details>
+        <summary>Who reads the papers?</summary>
+        <p>The patient picks: the on-device model, Apple's Private Cloud Compute, their own Mac, or a cloud AI with their own key. Before a page goes to a cloud AI, names and record numbers are blacked out and the patient sees the page.</p>
+      </details>
+      <details>
+        <summary>What does a pilot need from us?</summary>
+        <p>The surgery type, sample papers your patients go home with (patient details removed), and a contact on the care team. We test Remedy on those sample papers with you first.</p>
+      </details>
+    </div>
+  </section>
+
+</main>
+
+<!-- chrome:footer -->
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <a class="brand" href="index.html"><img src="img/icon-180.png" alt="" width="32" height="32">Remedy</a>
+        <p>Surgery papers, turned into a plan for each day. Built by Dorron Hoffman and Nikhil Shah in Bergen County, New Jersey.</p>
+      </div>
+      <div>
+        <h4>The app</h4>
+        <ul><li><a href="index.html#how">How it works</a></li><li><a href="features.html">Features</a></li><li><a href="technology.html">Technology</a></li></ul>
+      </div>
+      <div>
+        <h4>Work with us</h4>
+        <ul><li><a href="demo.html">Demo library</a></li><li><a href="contact.html">Contact us</a></li><li><a href="contact.html?reason=Clinical%20pilot%20or%20trial">Pilots and trials</a></li></ul>
+      </div>
+    </div>
+    <p class="foot-legal">Remedy helps patients read their own papers. It does not replace their doctor, is not a medical device, and has not been clinically validated. Every patient, paper and phone number on this site is made up.</p>
+  </div>
+</footer>
+<script src="site.js" defer></script>
+<!-- /chrome:footer -->
+</body>
+</html>

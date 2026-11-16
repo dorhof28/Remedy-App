@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remedy demo library</title>
+<meta name="description" content="Every Remedy demo screen, the four sample papers and the demo patients, ready to search and download.">
+<meta name="theme-color" content="#FDD3DC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="img/favicon-64.png">
+<link rel="apple-touch-icon" href="img/icon-180.png">
+<link rel="stylesheet" href="styles.css">
+<script>if (!matchMedia("(prefers-reduced-motion: reduce)").matches) document.documentElement.classList.add("motion");</script>
+<script src="demo/data.js"></script>
+</head>
+<body>
+<!-- chrome:header -->
+<a class="skip" href="#main">Skip to content</a>
+<div class="nav-shell">
+  <nav class="nav" aria-label="Main">
+    <a class="brand" href="index.html"><img src="img/icon-180.png" alt="" width="44" height="44">Remedy</a>
+    <ul class="nav-links">
+      <li><a href="index.html#how">How it works</a></li>
+      <li><a href="features.html">Features</a></li>
+      <li><a href="technology.html">Technology</a></li>
+      <li><a href="demo.html" aria-current="page">Demo</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a class="btn btn-teal" href="contact.html">Contact us</a>
+      <button class="menu-btn" aria-expanded="false" aria-controls="menu" aria-label="Menu">
+        <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true"><path d="M1 1h18M1 7h18M1 13h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </nav>
+  <div class="menu-panel" id="menu">
+    <a href="index.html">Home</a>
+    <a href="index.html#how">How it works</a>
+    <a href="features.html">Features</a>
+    <a href="technology.html">Technology</a>
+    <a href="demo.html" aria-current="page">Demo</a>
+    <a href="contact.html">Contact us</a>
+  </div>
+</div>
+<!-- /chrome:header -->
+
+<main id="main">
+
+  <header class="page-head">
+    <div class="blob blob-mint" aria-hidden="true"></div>
+    <div class="blob blob-pink" aria-hidden="true"></div>
+    <div class="wrap">
+      <h1>Demo library</h1>
+      <p class="lede">Screens, sample papers and demo patients for showing Remedy. Every patient here is made up.</p>
+    </div>
+  </header>
+
+  <div class="wrap" id="library">
+    <div class="tabs" role="tablist" aria-label="Library sections">
+      <button type="button" role="tab" data-tab="screens" aria-selected="true">Screens</button>
+      <button type="button" role="tab" data-tab="papers" aria-selected="false">Papers</button>
+      <button type="button" role="tab" data-tab="patients" aria-selected="false">Demo patients</button>
+      <button type="button" role="tab" data-tab="howto" aria-selected="false">How to run</button>
+    </div>
+
+    <div class="toolbar">
+      <div class="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <label for="q" class="vh">Search screens</label>
+        <input id="q" type="search" placeholder="Search: eliquis, missed dose, ask…" autocomplete="off">
+      </div>
+      <label for="moment" class="vh">Moment</label>
+      <select id="moment"><option value="">Every moment</option></select>
+      <label for="look" class="vh">Look</label>
+      <select id="look">
+        <option value="">Every look</option>
+        <option>Classic</option>
+        <option>Simple</option>
+        <option>Setup</option>
+      </select>
+      <span class="count" id="count" aria-live="polite"></span>
+    </div>
+
+    <section data-panel="screens" aria-label="Screens">
+      <ul class="shots" id="shot-grid"></ul>
+    </section>
+
+    <section data-panel="papers" aria-label="Sample papers" hidden>
+      <p class="muted panel-note">Ruth Callahan's four papers, marked SAMPLE. Add them to Remedy through Add papers to show a live read.</p>
+      <ul class="paper-grid" id="paper-grid"></ul>
+    </section>
+
+    <section data-panel="patients" aria-label="Demo patients" hidden>
+      <p class="muted panel-note">Each one opens from Settings, Demo mode in the app, or with the launch argument shown.</p>
+      <ul class="patients" id="patient-grid"></ul>
+    </section>
+
+    <section data-panel="howto" aria-label="How to run the demo" hidden>
+      <div class="howto">
+        <div>
+          <h2>In the app</h2>
+          <ol>
+            <li>Open <b>Settings, Demo mode</b> and turn it on.</li>
+            <li>Under <b>Start here</b>, tap <b>HSS knee replacement</b>. Ruth's four papers load and the clock moves to day 4 at home.</li>
+            <li>Use <b>Pretend today is</b> to move the day. Go back before surgery to see the red Eliquis card on Today.</li>
+            <li>For a live read, add D1 to D4 from Files through <b>Add papers</b>. Set <b>Read papers with</b> to <b>Expected answers</b> if there's no AI set up.</li>
+            <li>Turn demo mode off. The real plan comes back and nothing from the demo stays.</li>
+          </ol>
+          <p class="muted small">On day 4 at 2 PM: acetaminophen due now, a missed 9 AM apixaban, oxycodone "You can take 1 now", home PT at 11 AM, and red, blue and green cards on Papers.</p>
+        </div>
+        <div>
+          <h2>In the Simulator</h2>
+          <p class="muted small">Debug builds only. This opens the Simple look on day 4 at 2 PM.</p>
+          <pre class="cmd"><code>xcrun simctl launch booted com.dorronhoffman.Remedy \
+  -demoScenario hssKnee -demoTime 14:00 \
+  -appLookMode simple -appLook simple \
+  -skipPermissionPrompts YES</code><button class="copy" data-copy="xcrun simctl launch booted com.dorronhoffman.Remedy -demoScenario hssKnee -demoTime 14:00 -appLookMode simple -appLook simple -skipPermissionPrompts YES">Copy</button></pre>
+          <p class="muted small">Pick the day: −5 is five days before surgery, 0 is surgery day, 4 is the default, 14 is two weeks out.</p>
+          <pre class="cmd"><code>xcrun simctl spawn booted defaults write \
+  com.dorronhoffman.Remedy demoPlanDay -int -5</code><button class="copy" data-copy="xcrun simctl spawn booted defaults write com.dorronhoffman.Remedy demoPlanDay -int -5">Copy</button></pre>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="lightbox" id="lightbox" data-open="false" role="dialog" aria-modal="true" aria-label="Screen">
+    <div class="lb-inner">
+      <div class="iphone"><div class="screen"><img src="" alt="" width="900" height="1955"></div></div>
+      <div class="lb-text">
+        <p class="lb-meta"></p>
+        <h3></h3>
+        <p class="lb-cap"></p>
+        <div class="btn-row">
+          <a class="btn btn-teal btn-sm lb-dl" href="#" download>Download PNG</a>
+          <button type="button" class="btn btn-plain btn-sm lb-prev" aria-label="Previous screen">Previous</button>
+          <button type="button" class="btn btn-plain btn-sm lb-next" aria-label="Next screen">Next</button>
+        </div>
+      </div>
+      <button type="button" class="lb-close" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+</main>
+
+<!-- chrome:footer -->
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <a class="brand" href="index.html"><img src="img/icon-180.png" alt="" width="32" height="32">Remedy</a>
+        <p>Surgery papers, turned into a plan for each day. Built by Dorron Hoffman and Nikhil Shah in Bergen County, New Jersey.</p>
+      </div>
+      <div>
+        <h4>The app</h4>
+        <ul><li><a href="index.html#how">How it works</a></li><li><a href="features.html">Features</a></li><li><a href="technology.html">Technology</a></li></ul>
+      </div>
+      <div>
+        <h4>Work with us</h4>
+        <ul><li><a href="demo.html">Demo library</a></li><li><a href="contact.html">Contact us</a></li><li><a href="contact.html?reason=Clinical%20pilot%20or%20trial">Pilots and trials</a></li></ul>
+      </div>
+    </div>
+    <p class="foot-legal">Remedy helps patients read their own papers. It does not replace their doctor, is not a medical device, and has not been clinically validated. Every patient, paper and phone number on this site is made up.</p>
+  </div>
+</footer>
+<script src="site.js" defer></script>
+<!-- /chrome:footer -->
+</body>
+</html>

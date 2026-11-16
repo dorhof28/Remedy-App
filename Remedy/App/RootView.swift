@@ -2,7 +2,7 @@
 //  RootView.swift
 //  Remedy
 //
-//  Created by Dorron Hoffman on 10/24/26.
+//  Created by Dorron Hoffman on 5/24/26.
 //
 //  scan flow when theres no plan otherwise the tabs or simple home
 //

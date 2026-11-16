@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remedy technology</title>
+<meta name="description" content="How Remedy is built: a native iOS 27 app where AI reads the papers and tested Swift rules make every medical decision.">
+<meta name="theme-color" content="#FDD3DC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="img/favicon-64.png">
+<link rel="apple-touch-icon" href="img/icon-180.png">
+<link rel="stylesheet" href="styles.css">
+<script>if (!matchMedia("(prefers-reduced-motion: reduce)").matches) document.documentElement.classList.add("motion");</script>
+</head>
+<body>
+<!-- chrome:header -->
+<a class="skip" href="#main">Skip to content</a>
+<div class="nav-shell">
+  <nav class="nav" aria-label="Main">
+    <a class="brand" href="index.html"><img src="img/icon-180.png" alt="" width="44" height="44">Remedy</a>
+    <ul class="nav-links">
+      <li><a href="index.html#how">How it works</a></li>
+      <li><a href="features.html">Features</a></li>
+      <li><a href="technology.html" aria-current="page">Technology</a></li>
+      <li><a href="demo.html">Demo</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a class="btn btn-teal" href="contact.html">Contact us</a>
+      <button class="menu-btn" aria-expanded="false" aria-controls="menu" aria-label="Menu">
+        <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true"><path d="M1 1h18M1 7h18M1 13h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </nav>
+  <div class="menu-panel" id="menu">
+    <a href="index.html">Home</a>
+    <a href="index.html#how">How it works</a>
+    <a href="features.html">Features</a>
+    <a href="technology.html" aria-current="page">Technology</a>
+    <a href="demo.html">Demo</a>
+    <a href="contact.html">Contact us</a>
+  </div>
+</div>
+<!-- /chrome:header -->
+
+<main id="main">
+
+  <header class="page-head">
+    <div class="blob blob-mint" aria-hidden="true"></div>
+    <div class="blob blob-pink" aria-hidden="true"></div>
+    <div class="wrap">
+      <h1>How Remedy is built</h1>
+      <p class="lede">A native iPhone app where AI reads the papers and plain, tested Swift rules make every medical decision.</p>
+      <ul class="chips-row">
+        <li>iOS 27</li><li>Swift</li><li>SwiftUI</li><li>SwiftData</li><li>FoundationModels</li><li>On-device first</li>
+      </ul>
+    </div>
+  </header>
+
+  <section class="band" aria-labelledby="arch-h">
+    <div class="wrap">
+      <div class="head" data-reveal>
+        <h2 id="arch-h">From paper to plan</h2>
+        <p>Seven steps. AI does two of them, the patient does one, and fixed rules do the rest.</p>
+      </div>
+      <ol class="flow">
+        <li style="--i:0"><b>Capture</b><span>Document camera, photos, PDFs or MyChart</span></li>
+        <li style="--i:1"><b>Read text</b><span>Vision on the phone, read twice</span></li>
+        <li class="ai" style="--i:2"><b>Hide names</b><span>Fixed rules plus the on-device model</span></li>
+        <li class="ai" style="--i:3"><b>Draft</b><span>The reader the patient picked writes a draft</span></li>
+        <li class="rule" style="--i:4"><b>Quote check</b><span>Every item's words must be on the page</span></li>
+        <li class="you" style="--i:5"><b>Confirm</b><span>The patient approves each item</span></li>
+        <li class="rule" style="--i:6"><b>Rules</b><span>Doses, stop days, paper check, reminders</span></li>
+      </ol>
+      <ul class="legend">
+        <li><i style="background:var(--pink)"></i>AI</li>
+        <li><i style="background:var(--teal)"></i>Tested rules</li>
+        <li><i style="background:var(--ink)"></i>The patient</li>
+      </ul>
+
+      <div class="layers-grid">
+        <div data-reveal="left">
+          <h3 style="font-size:var(--t-xl);font-weight:800">Five layers, one direction</h3>
+          <p class="muted" style="margin-top:12px">Every medical rule lives in Core, which has no SwiftUI and no SwiftData, so each rule runs and is tested on its own. Both looks draw the same view models, so Classic and Simple can't disagree.</p>
+          <p class="muted">Every saved item keeps the paper's exact words and which paper it came from. Every date is stored as days from surgery.</p>
+        </div>
+        <ul class="layers" data-reveal="right">
+          <li><b>Interface</b><span>Classic and Simple screens over one set of view models</span></li>
+          <li><b>Services</b><span>AI readers, page reading, MyChart, Health, widgets, Siri, Keychain</span></li>
+          <li><b>Persistence</b><span>Saving, adapters, the paper check report, demo patients</span></li>
+          <li><b>Models</b><span>16 SwiftData models under one CarePlan</span></li>
+          <li><b>Core</b><span>Pure Swift rules. No UI, no database, no AI.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="band band-mint" aria-labelledby="rules-h">
+    <div class="wrap">
+      <div class="head" data-reveal>
+        <h2 id="rules-h">AI reads. Rules decide.</h2>
+        <p>If the reader the patient picked fails, Remedy says so and asks. It never switches to a cloud AI on its own.</p>
+      </div>
+      <div class="split">
+        <div class="ai-side" data-reveal style="--i:0">
+          <h3>What AI does</h3>
+          <ul>
+            <li>Reads a page into a draft plan</li>
+            <li>Finds names to hide</li>
+            <li>Picks which line of the papers answers a question</li>
+            <li>Rewords a red card's two quotes, labeled "Simpler words, not advice"</li>
+          </ul>
+        </div>
+        <div class="rule-side" data-reveal style="--i:1">
+          <h3>What rules decide</h3>
+          <ul>
+            <li><span>Dose times, due and missed, gaps and daily limits <code>DoseSchedule</code></span></li>
+            <li><span>Stop and restart days <code>RestartRule</code></span></li>
+            <li><span>When food and drink stop <code>FastingTimes</code></span></li>
+            <li><span>Which paper to follow <code>PaperCheck</code>, <code>NewerPaperRule</code></span></li>
+            <li><span>Answers and danger words <code>AskAnswers</code>, <code>WarningSigns</code></span></li>
+            <li><span>Up to 60 reminders at a time <code>ReminderPlan</code></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="hard-h">
+    <div class="wrap">
+      <div class="head" data-reveal>
+        <h2 id="hard-h">Problems we had to solve</h2>
+        <p>Each one is a rule in Core or a guard around the AI. Try the first two.</p>
+      </div>
+
+      <article class="problem" id="rules">
+        <div data-reveal="left">
+          <p class="kicker">Papers that disagree</p>
+          <h3>Which paper wins?</h3>
+          <p>Every line about the same medicine, from different papers, is compared. Brand and generic names match. A blank field means the paper didn't say, never a conflict. The checks run in order and the first that applies decides.</p>
+          <p class="where-code">Core/PaperCheck.swift, Core/NewerPaperRule.swift</p>
+        </div>
+        <div class="demo-card" id="sim" data-reveal="right">
+          <div class="sim-q" data-q="agree"><span>Do the two lines say the same thing?</span><div class="segmented"><button type="button" value="yes" aria-pressed="false">Yes</button><button type="button" value="no" aria-pressed="true">No</button></div></div>
+          <div class="sim-q" data-q="dated"><span>Do both papers have a printed date?</span><div class="segmented"><button type="button" value="yes" aria-pressed="true">Yes</button><button type="button" value="no" aria-pressed="false">No</button></div></div>
+          <div class="sim-q" data-q="group"><span>Does the newer line only name a group, like NSAIDs?</span><div class="segmented"><button type="button" value="yes" aria-pressed="false">Yes</button><button type="button" value="no" aria-pressed="true">No</button></div></div>
+          <div class="sim-q" data-q="sameDay"><span>Printed the same day?</span><div class="segmented"><button type="button" value="yes" aria-pressed="false">Yes</button><button type="button" value="no" aria-pressed="true">No</button></div></div>
+          <div class="sim-q" data-q="team"><span>Is the newer paper from the surgery team?</span><div class="segmented"><button type="button" value="yes" aria-pressed="true">Yes</button><button type="button" value="no" aria-pressed="false">No</button></div></div>
+          <div class="sim-q" data-q="month"><span>Printed a month or more later?</span><div class="segmented"><button type="button" value="yes" aria-pressed="false">Yes</button><button type="button" value="no" aria-pressed="true">No</button></div></div>
+          <div class="verdict" aria-live="polite"></div>
+        </div>
+      </article>
+
+      <article class="problem">
+        <div data-reveal="left">
+          <p class="kicker">Surgery dates move</p>
+          <h3>Store days, not dates</h3>
+          <p>Pre-op papers say "stop 3 days before surgery." Remedy stores every item that way: day 0 is surgery. When surgery is rescheduled, the patient changes one date and the whole plan moves. Drag it.</p>
+          <p class="where-code">Core/DayMath.swift</p>
+        </div>
+        <div class="demo-card" data-reveal="right">
+          <div class="slider-row">
+            <label for="surgery-move" class="vh">Move surgery</label>
+            <span class="small muted">Surgery</span>
+            <input id="surgery-move" type="range" min="-14" max="14" value="0" step="1">
+            <output id="surgery-out" for="surgery-move">Thu, Nov 12</output>
+          </div>
+          <ul class="daylist">
+            <li data-off="-3"><span class="off">day −3</span><span>Last Eliquis dose, heart doctor's paper</span><span class="date"></span></li>
+            <li data-off="-1"><span class="off">day −1</span><span>Stop valsartan</span><span class="date"></span></li>
+            <li data-off="0"><span class="off">day 0</span><span>Surgery, arrive 6:00 AM</span><span class="date"></span></li>
+            <li data-off="2"><span class="off">day 2</span><span>Restart Eliquis</span><span class="date"></span></li>
+            <li data-off="4"><span class="off">day 4</span><span>Home physical therapy</span><span class="date"></span></li>
+            <li data-off="12"><span class="off">day 12</span><span>Staple removal, visiting nurse</span><span class="date"></span></li>
+            <li data-off="19"><span class="off">day 19</span><span>Post-op visit</span><span class="date"></span></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="problem">
+        <div data-reveal="left">
+          <p class="kicker">AI can make things up</p>
+          <h3>Every item must quote the page</h3>
+          <p>Each item the AI returns carries a quote. If those words aren't on the page, or a day number isn't written there, the item is left out and shown to the patient with the reason. The patient then confirms each item next to its quote.</p>
+          <p class="where-code">Core/SourceCheck.swift, Services/AI/AIPlanConverter.swift</p>
+        </div>
+        <div class="demo-card" data-reveal="right">
+          <div class="qc-page">oxyCODONE 5 MG immediate release tablet<br><mark>Take 1 tablet (5 mg total) by mouth every 4 (four) hours as needed for severe pain (7-10). Max Daily Amount: 30 mg</mark><br>{Last time this was given: 5 mg on November 13, 2026 at 11:40 AM}</div>
+          <ul class="qc-items">
+            <li class="ok"><i>✓</i><div><b>Oxycodone 5 mg, every 4 hours as needed, 30 mg a day at most</b><small>Quote found on page 1. Goes to the patient to confirm.</small></div></li>
+            <li class="no"><i>✕</i><div><b>Ibuprofen 400 mg every 6 hours</b><small>Not on the page. Left out and listed under "We left out 1 item."</small></div></li>
+          </ul>
+          <p class="small muted" style="margin:12px 0 0">The page lines are from Ruth's sample discharge paper. The left-out item shows what happens to an invented one.</p>
+        </div>
+      </article>
+
+      <article class="problem">
+        <div data-reveal="left">
+          <p class="kicker">Patient details must stay on the phone</p>
+          <h3>Three layers hide names first</h3>
+          <p>Fixed rules catch labeled fields, record numbers, dates of birth, addresses and the names the patient typed, even when the camera misread a letter. The on-device model and NLTagger add names the rules missed. Black boxes then cover the same words on the page picture. Medicine names on a medicine line are protected.</p>
+          <p class="where-code">Core/Redactor.swift, Services/AI/AIRedactor.swift, Services/Reading/PageBlackout.swift</p>
+        </div>
+        <div class="demo-card" data-reveal="right">
+          <div class="redact">
+            <span class="sample">SAMPLE - NOT A REAL PATIENT</span><br>
+            AFTER VISIT SUMMARY<br>
+            <span class="bx" style="--i:0">Ruth Callahan</span> MRN: <span class="bx" style="--i:1">40817263</span><br>
+            CEID: <span class="bx" style="--i:2">HOS-QK4T-7R2M-W9PX</span><br>
+            Attending: Daniel Whitfield, MD<br>
+            <span class="keep">acetaminophen</span> 500 MG tablet<br>
+            Take 2 tablets by mouth every 8 hours.
+          </div>
+          <p class="small muted" style="margin:14px 0 0">The doctor's name stays readable, and so does the medicine. Before anything leaves the phone, the patient sees this page and can tap any word to hide or show it.</p>
+        </div>
+      </article>
+
+      <article class="problem">
+        <div data-reveal="left">
+          <p class="kicker">The first dose at home</p>
+          <h3>Start from the hospital's last dose</h3>
+          <p>Discharge papers often list when each medicine was last given. Remedy reads that line strictly: one clear time, on the paper's printed day. If AM or PM is missing it asks, and if anything is unclear it uses nothing and keeps the paper's normal times.</p>
+          <p class="where-code">Core/LastGivenParser.swift, Core/DoseSchedule.swift</p>
+        </div>
+        <div class="demo-card lg" data-reveal="right">
+          <div class="lg-line">Take 2 tablets (1,000 mg total) by mouth every 8 (eight) hours.<br>{Last time this was given: 1,000 mg on November 13, 2026 at 6:02 AM}</div>
+          <svg class="lg-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 4v16M6 14l6 6 6-6"/></svg>
+          <div class="lg-out">First acetaminophen at home: 2:02 PM</div>
+          <div class="lg-line" style="margin-top:8px">Last time this was given: 5 mg at 11:40</div>
+          <svg class="lg-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 4v16M6 14l6 6 6-6"/></svg>
+          <div class="lg-out ask">"Was that AM or PM?" The time isn't used until the patient answers.</div>
+        </div>
+      </article>
+
+      <article class="problem">
+        <div data-reveal="left">
+          <p class="kicker">One medicine, many names</p>
+          <h3>Match names exactly, never fuzzily</h3>
+          <p>Names are cleaned and expanded through a brand table. Two lines are the same medicine when their names overlap. A group line like "NSAIDs" counts only for members the patient takes, and never beats a line that names the medicine.</p>
+          <p class="where-code">Core/MedicineIdentity.swift, Core/WhatChanged.swift</p>
+        </div>
+        <div class="demo-card namesets" data-reveal="right">
+          <div class="nameset"><span class="tagx">Eliquis</span><span class="eq">=</span><span class="tagx">apixaban</span></div>
+          <div class="nameset"><span class="tagx">Tylenol</span><span class="eq">=</span><span class="tagx">acetaminophen</span></div>
+          <div class="nameset"><span class="tagx">Advil</span><span class="eq">=</span><span class="tagx">Motrin</span><span class="eq">=</span><span class="tagx">ibuprofen</span></div>
+          <div class="nameset"><span class="tagx">NSAIDs</span><span class="eq">→</span><span class="tagx">ibuprofen</span><small>A group line covers only the medicines on this patient's list.</small></div>
+        </div>
+      </article>
+
+      <article class="problem">
+        <div data-reveal="left">
+          <p class="kicker">Photos taken on a kitchen table</p>
+          <h3>Read twice, trust neither blindly</h3>
+          <p>Vision finds the page and squares it. A second copy has its shadows evened out, and both are read. The better read is kept only if it scores more than 3% higher. Any number the two reads disagree on, like 5 and 50, is shown to the patient. Camera misreads inside doses are fixed in the open.</p>
+          <p class="where-code">Services/Reading/PagePreparer.swift, Core/ReadAgreement.swift</p>
+        </div>
+        <div class="demo-card" data-reveal="right">
+          <ul class="qc-items" style="margin:0">
+            <li class="ok"><i>1</i><div><b>Find the edges and square the page</b><small>Rejected if it's too small, fills the photo, or isn't shaped like paper</small></div></li>
+            <li class="ok"><i>2</i><div><b>Even out shadows on a copy</b><small>Same size, so word boxes still line up for the blackout</small></div></li>
+            <li class="ok"><i>3</i><div><b>Read both, keep the better</b><small>Lines whose numbers differ become notes for the patient</small></div></li>
+            <li class="ok"><i>4</i><div><b>"Remedy read '1O mg' as '10 mg'. Check it on the paper."</b><small>Every fix is disclosed</small></div></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="problem">
+        <div data-reveal="left">
+          <p class="kicker">Questions without guessing</p>
+          <h3>Ask answers in a fixed order</h3>
+          <p>Ask never sends a question to a cloud AI. The on-device model may only point at one numbered line from the papers. It can't write its own answer.</p>
+          <p class="where-code">Core/AskAnswers.swift, Services/AI/Ask/AskPicker.swift</p>
+        </div>
+        <ol class="demo-card ladder" data-reveal="right">
+          <li><div><b>Danger words</b>Chest pain or trouble breathing: call 911. Fever or bleeding: call the surgeon's office.</div></li>
+          <li><div><b>Written rules</b>A medicine, an instruction, a visit, or what to take today, from the line the paper check follows.</div></li>
+          <li><div><b>One line from the papers</b>The on-device model picks the closest line, shown word for word.</div></li>
+          <li><div><b>Nothing found</b>"I couldn't find that on your papers, so I won't guess."</div></li>
+        </ol>
+      </article>
+
+      <article class="problem">
+        <div data-reveal="left">
+          <p class="kicker">Privacy as a choice</p>
+          <h3>The patient picks who reads</h3>
+          <p>One protocol, many readers. Adding a provider is one adapter file. Keys live in the Keychain, never in code.</p>
+          <p class="where-code">Services/AI/PlanReader.swift, ModelPlanReader.swift</p>
+        </div>
+        <div class="table-scroll" data-reveal="right">
+          <table>
+            <thead><tr><th scope="col">Reader</th><th scope="col">Examples</th><th scope="col">Where the page goes</th></tr></thead>
+            <tbody>
+              <tr><td>On this iPhone</td><td>Apple's on-device model; GLM-OCR and Gemma 4 run with MLX</td><td>Nowhere</td></tr>
+              <tr><td>Private Cloud Compute</td><td>Apple's private servers</td><td>Apple's servers, which Apple designs so it can't see or keep the page</td></tr>
+              <tr><td>The patient's Mac</td><td>LM Studio, Ollama or oMLX on home Wi-Fi</td><td>That Mac</td></tr>
+              <tr><td>Cloud AI, patient's key</td><td>Claude, Gemini, OpenAI, Groq, Mistral, OpenRouter</td><td>That provider, after names are hidden</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="band band-pink" aria-labelledby="fw-h">
+    <div class="wrap">
+      <div class="head" data-reveal><h2 id="fw-h">Frameworks</h2></div>
+      <dl class="frameworks">
+        <div data-reveal style="--i:0"><dt>SwiftUI, Observation</dt><dd>Both looks, every screen</dd></div>
+        <div data-reveal style="--i:1"><dt>SwiftData</dt><dd>The plan, dose log, check-ins and papers, on the device, not synced</dd></div>
+        <div data-reveal style="--i:2"><dt>FoundationModels</dt><dd>On-device model and Private Cloud Compute with guided generation</dd></div>
+        <div data-reveal style="--i:0"><dt>Vision, VisionKit, Core Image</dt><dd>Scanning, page cleanup, text reading, word boxes</dd></div>
+        <div data-reveal style="--i:1"><dt>NaturalLanguage, PDFKit</dt><dd>Finding names; reading PDFs and making share PDFs</dd></div>
+        <div data-reveal style="--i:2"><dt>CryptoKit, Security</dt><dd>AES-GCM backups, PBKDF2-SHA256 at 600,000 rounds, Keychain</dd></div>
+        <div data-reveal style="--i:0"><dt>HealthKit, AuthenticationServices</dt><dd>Apple Health records, MyChart over SMART on FHIR</dd></div>
+        <div data-reveal style="--i:1"><dt>EventKit, UserNotifications</dt><dd>A Remedy calendar, Reminders list and dose reminders</dd></div>
+        <div data-reveal style="--i:2"><dt>WidgetKit, ActivityKit, App Intents</dt><dd>Widgets, the busy-day Live Activity, Siri</dd></div>
+        <div data-reveal style="--i:0"><dt>LocalAuthentication</dt><dd>Face ID lock, off by default</dd></div>
+        <div data-reveal style="--i:1"><dt>MLX, swift-transformers</dt><dd>Downloaded models that run on the iPhone</dd></div>
+        <div data-reveal style="--i:2"><dt>ClaudeForFoundationModels, foundation-models-utilities</dt><dd>Claude, a Mac or OpenAI-compatible servers through one model interface</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section aria-label="Contact">
+    <div class="wrap">
+      <div class="cta" data-reveal="zoom">
+        <div>
+          <h2>Questions about how it works?</h2>
+          <p>We're happy to walk an engineering or clinical team through the code.</p>
+        </div>
+        <a class="btn btn-teal" href="contact.html">Contact us</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- chrome:footer -->
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <a class="brand" href="index.html"><img src="img/icon-180.png" alt="" width="32" height="32">Remedy</a>
+        <p>Surgery papers, turned into a plan for each day. Built by Dorron Hoffman and Nikhil Shah in Bergen County, New Jersey.</p>
+      </div>
+      <div>
+        <h4>The app</h4>
+        <ul><li><a href="index.html#how">How it works</a></li><li><a href="features.html">Features</a></li><li><a href="technology.html">Technology</a></li></ul>
+      </div>
+      <div>
+        <h4>Work with us</h4>
+        <ul><li><a href="demo.html">Demo library</a></li><li><a href="contact.html">Contact us</a></li><li><a href="contact.html?reason=Clinical%20pilot%20or%20trial">Pilots and trials</a></li></ul>
+      </div>
+    </div>
+    <p class="foot-legal">Remedy helps patients read their own papers. It does not replace their doctor, is not a medical device, and has not been clinically validated. Every patient, paper and phone number on this site is made up.</p>
+  </div>
+</footer>
+<script src="site.js" defer></script>
+<!-- /chrome:footer -->
+</body>
+</html>
