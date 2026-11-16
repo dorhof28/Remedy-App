@@ -2,13 +2,13 @@
 //  HelpButtons.swift
 //  Remedy
 //
-//  the toolbar on every classic tab root: Help on the left, Settings (or Clear Chat on Ask) on the right
+//  the toolbar on every classic tab root: Help and Settings (or Clear Chat on Ask) as icons on the right
 //
 
 import SwiftUI
 
 extension View {
-    // help is never more than one tap away, settings is a labeled button
+    // help is never more than one tap away, both are icons with spoken labels
     func helpButtons(showsSettings: Bool = true, clearChat: (() -> Void)? = nil) -> some View {
         modifier(TabRootToolbar(showsSettings: showsSettings, clearChat: clearChat))
     }
@@ -26,14 +26,11 @@ private struct TabRootToolbar: ViewModifier {
     func body(content: Content) -> some View {
         content
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                // both icons sit on the right, help first and settings at the edge
+                ToolbarItem(placement: .topBarTrailing) {
                     Button { isShowingHelp = true } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "phone")
-                                .foregroundStyle(Color.toneRed)
-                            Text("Help")
-                                .foregroundStyle(Color.ink)
-                        }
+                        Image(systemName: "phone.fill")
+                            .foregroundStyle(Color.toneRed)
                     }
                     .accessibilityLabel("Help")
                     .accessibilityHint("Call 911, call your care team or see when to call")
@@ -47,11 +44,8 @@ private struct TabRootToolbar: ViewModifier {
                 } else if showsSettings {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button { isShowingSettings = true } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "gearshape")
-                                Text("Settings")
-                            }
-                            .foregroundStyle(Color.ink)
+                            Image(systemName: "gearshape")
+                                .foregroundStyle(Color.ink)
                         }
                         .accessibilityLabel("Settings")
                         .accessibilityIdentifier("toolbar-settings")
