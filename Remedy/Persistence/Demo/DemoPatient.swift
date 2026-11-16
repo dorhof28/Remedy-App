@@ -62,6 +62,8 @@ enum DemoMode {
         if !store.exists {
             try store.save(try BackupSnapshot.make(from: context))
         }
+        // the fake clock starts at today before the plan is made, so its past days are filled up to now
+        defaults.set(0, forKey: LaunchOptions.demoShiftKey)
         do {
             for type in RemedySchema.models { try deleteAll(type, in: context) }
             insert(scenario, into: context)
@@ -123,6 +125,8 @@ enum DemoMode {
                 for index in draft.appointments.indices { draft.appointments[index].isConfirmed = true }
                 plan = PlanImporter.save(draft, in: context)
             }
+            // the HSS papers come with the days already lived, doses, pain pills and check-ins
+            if scenario == .hssKnee, let plan { DemoHistory.fill(plan, now: AppClock.now(), in: context) }
             return plan
         }
     }

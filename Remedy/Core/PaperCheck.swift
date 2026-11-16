@@ -123,6 +123,26 @@ nonisolated struct Finding {
         return items.first { $0.paperID != followed }?.paperID ?? followed
     }
 
+    // the last plan day the papers still disagree, nil while it never ends or a circle is open
+    // two stop days only differ until the later one, after that both papers say stop
+    var lastDisagreementDay: Int? {
+        guard !isCircle else { return nil }
+        if kind == .differentStopDay {
+            let starts = items.compactMap(\.startDay)
+            guard starts.count == items.count, let latest = starts.max() else { return nil }
+            return latest - 1
+        }
+        let ends = items.compactMap(\.endDay)
+        guard ends.count == items.count else { return nil }
+        return ends.max()
+    }
+
+    // a red card whose days are all behind the patient, nothing is left to ask
+    func isOver(today: Int) -> Bool {
+        guard let last = lastDisagreementDay else { return false }
+        return last < today
+    }
+
     // the days both lines cover
     var sharedDays: DayRange {
         DayRange(start: [older.startDay, newer.startDay].compactMap { $0 }.max(),

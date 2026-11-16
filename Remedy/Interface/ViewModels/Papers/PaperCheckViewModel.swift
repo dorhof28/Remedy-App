@@ -122,14 +122,20 @@ struct PaperCheckViewModel {
 
     // MARK: - Cards
 
-    // papers that still disagree, most urgent first
-    var redCards: [PaperCheckCardData] { cards(from: report?.result.findings ?? []).filter(\.isRed) }
+    // papers that still disagree, most urgent first, ones whose days are all past are left out
+    var redCards: [PaperCheckCardData] { cards(from: report?.result.findings ?? []).filter { $0.isRed && !isOver($0) } }
 
-    // newer papers that replaced older ones, and what the office chose
-    var blueNotes: [PaperCheckCardData] { cards(from: report?.result.findings ?? []).filter { !$0.isRed } }
+    // newer papers that replaced older ones, what the office chose, and disagreements whose days are past
+    var blueNotes: [PaperCheckCardData] { cards(from: report?.result.findings ?? []).filter { !$0.isRed || isOver($0) } }
 
     // how many things on the papers need the patient: open disagreements and medicines still to ask about
-    var attentionCount: Int { Self.attentionCount(of: cards(from: report?.result.findings ?? [])) }
+    var attentionCount: Int { Self.attentionCount(of: cards(from: report?.result.findings ?? []).filter { !isOver($0) }) }
+
+    // a disagreement only about days already gone, nothing is left to ask
+    private func isOver(_ card: PaperCheckCardData) -> Bool {
+        guard card.isRed, let plan, let today = DoseSchedule.today(for: plan, now: now) else { return false }
+        return card.finding.isOver(today: today)
+    }
 
     // cards that still need the patient
     static func attentionCount(of cards: [PaperCheckCardData]) -> Int {
@@ -137,7 +143,7 @@ struct PaperCheckViewModel {
     }
 
     func redCards(for medicine: MedicineInstruction) -> [PaperCheckCardData] {
-        cards(from: report?.findings(for: medicine) ?? []).filter(\.isRed)
+        cards(from: report?.findings(for: medicine) ?? []).filter { $0.isRed && !isOver($0) }
     }
 
     func blueNotes(for medicine: MedicineInstruction) -> [PaperCheckCardData] {

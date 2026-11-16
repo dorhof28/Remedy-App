@@ -24,7 +24,7 @@ enum SamplePatients {
         }
         let text = squash(pages.joined(separator: " "))
         var best: (draft: DraftPlan, hits: Int)?
-        for draft in kneePapers() + gallbladderPapers() + herniaPapers() {
+        for draft in kneePapers() + gallbladderPapers() + herniaPapers() + RuthDrafts.all() {
             let quotes = (draft.medicines.map(\.quote) + draft.rules.map(\.quote) + draft.tasks.map(\.quote))
                 .map(squash).filter { !$0.isEmpty }
             guard !quotes.isEmpty, quotes.allSatisfy({ text.contains($0) }) else { continue }

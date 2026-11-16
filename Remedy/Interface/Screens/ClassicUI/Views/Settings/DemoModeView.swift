@@ -56,6 +56,10 @@ private struct DemoHomePage: View {
                 NavigationLink { DemoMorePatientsPage() } label: {
                     ListRow(symbol: "list.bullet", title: viewModel.otherPlansTitle)
                 }
+                NavigationLink { DemoSamplePapersPage() } label: {
+                    ListRow(symbol: "doc.text.magnifyingglass", title: viewModel.samplePapersTitle, subtitle: viewModel.samplePapersDetail)
+                }
+                .accessibilityIdentifier("demo-sample-papers")
             } header: {
                 ListSectionHeader(title: viewModel.patientsTitle)
             }
@@ -170,5 +174,54 @@ private struct DemoMorePatientsPage: View {
         .navigationTitle(viewModel.otherPlansTitle)
         .navigationBarTitleDisplayMode(.inline)
         .demoLoaderDialogs(loader, hasPlan: !plans.isEmpty, context: context)
+    }
+}
+
+// the HSS sample papers: open one, flip through it, share it to Files to add it like a real paper
+private struct DemoSamplePapersPage: View {
+
+    var body: some View {
+        let viewModel = DemoModeViewModel()
+        List {
+            Section {
+                ForEach(DemoPapers.all) { item in
+                    NavigationLink { DemoPaperPage(item: item) } label: {
+                        ListRow(symbol: "doc.text", title: item.title, subtitle: item.detail)
+                    }
+                }
+            } footer: {
+                Text(viewModel.samplePapersIntro)
+            }
+        }
+        .remedyList()
+        .navigationTitle(viewModel.samplePapersTitle)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// one sample paper full screen with a share button
+private struct DemoPaperPage: View {
+
+    let item: DemoPapers.Item
+    // UI only the page on screen
+    @State private var page = 1
+
+    var body: some View {
+        Group {
+            if let url = item.url {
+                PDFPreview(url: url, page: $page)
+                    .toolbar {
+                        ToolbarItem(placement: .primaryAction) {
+                            ShareLink(item: url, subject: Text(item.title)) {
+                                Label(DemoModeViewModel().shareTitle, systemImage: "square.and.arrow.up")
+                            }
+                        }
+                    }
+            } else {
+                ContentUnavailableView(item.title, systemImage: "doc.questionmark")
+            }
+        }
+        .navigationTitle(item.title)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

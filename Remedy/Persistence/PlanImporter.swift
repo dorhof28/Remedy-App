@@ -83,6 +83,16 @@ enum PlanImporter {
         }
 
         for item in draft.appointments where item.isConfirmed {
+            // the same visit printed on another paper is one visit, the new paper only fills what was blank
+            if let same = plan.appointments.first(where: { abs($0.date.timeIntervalSince(item.date)) < 60 }) {
+                if same.doctor.isEmpty { same.doctor = item.doctor }
+                if same.place.isEmpty { same.place = item.place }
+                if same.address.isEmpty { same.address = item.address }
+                if same.phone.isEmpty { same.phone = item.phone }
+                if same.purpose.isEmpty { same.purpose = item.purpose }
+                if same.bring.isEmpty { same.bring = item.bring }
+                continue
+            }
             let appointment = Appointment(title: item.title, date: item.date, paper: paper, quote: item.quote)
             appointment.doctor = item.doctor
             appointment.place = item.place

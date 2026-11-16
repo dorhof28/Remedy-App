@@ -11,6 +11,8 @@ import Foundation
 // the fake patients in the demo mode picker
 enum DemoScenario: String, CaseIterable, Identifiable {
 
+    // the four HSS style papers in SamplePapers/demo, day 4 at home with the past days filled in
+    case hssKnee
     // which papers
     case beforeOnly, afterOnly, bothPapers
     // when the surgery is
@@ -38,7 +40,7 @@ enum DemoScenario: String, CaseIterable, Identifiable {
     var group: Group {
         switch self {
         // the everyday plans shown first, one tap each
-        case .surgeryIn10Days, .surgeryTomorrow, .threeDaysAfter, .conflictingPapers: return .featured
+        case .hssKnee, .surgeryIn10Days, .surgeryTomorrow, .threeDaysAfter, .conflictingPapers: return .featured
         case .beforeOnly, .afterOnly, .bothPapers: return .papers
         case .surgeryToday, .threeWeeksAfter, .longAgo: return .dates
         case .missingDoctorPhone, .manyStopMedicines, .asNeededMedicines, .appointmentsToday, .overdueTodos: return .tricky
@@ -51,6 +53,7 @@ enum DemoScenario: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
+        case .hssKnee: return "HSS knee replacement"
         case .beforeOnly: return "Before-surgery papers only"
         case .afterOnly: return "After-surgery papers only"
         case .bothPapers: return "Both sets of papers"
@@ -71,6 +74,7 @@ enum DemoScenario: String, CaseIterable, Identifiable {
 
     var detail: String {
         switch self {
+        case .hssKnee: return "4 papers, day 4 at home, past days filled in"
         case .beforeOnly: return "Knee replacement, 10 days away"
         case .afterOnly: return "Knee replacement, 5 days ago"
         case .bothPapers: return "Before and after papers, 2 days after"
@@ -91,6 +95,7 @@ enum DemoScenario: String, CaseIterable, Identifiable {
 
     var symbol: String {
         switch self {
+        case .hssKnee: return "star"
         case .beforeOnly: return "doc.text"
         case .afterOnly: return "cross.case"
         case .bothPapers: return "doc.on.doc"
@@ -122,6 +127,7 @@ enum DemoScenario: String, CaseIterable, Identifiable {
     // days from today to surgery, negative when it is already done
     var surgeryInDays: Int {
         switch self {
+        case .hssKnee: return -4
         case .beforeOnly: return 10
         case .afterOnly: return -5
         case .bothPapers: return -2
@@ -146,6 +152,8 @@ enum DemoScenario: String, CaseIterable, Identifiable {
         switch self {
         case .surgeryIn10Days, .surgeryTomorrow, .surgeryToday, .threeDaysAfter, .threeWeeksAfter, .longAgo:
             return .samplePlan(surgeryInDays: days)
+        case .hssKnee:
+            return .papers(Self.rebased(RuthDrafts.withPages(), surgeryIn: days, today: today))
         case .beforeOnly:
             return .papers(Self.rebased([DianeDrafts.beforeSurgery()], surgeryIn: days, today: today))
         case .afterOnly:

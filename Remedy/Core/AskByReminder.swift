@@ -27,6 +27,8 @@ nonisolated struct AskByReminder: Equatable {
         let office = name.isEmpty ? "your care team" : "\(name)\u{2019}s office"
         return findings.compactMap { finding in
             guard finding.color == .red, !finding.isResolved else { return nil }
+            // no nagging once every day the papers disagree about is past
+            if finding.isOver(today: DayMath.dayOffset(of: now, from: surgeryDate)) { return nil }
             var fireDate = finding.askByDay.map { DayMath.date(forDay: $0, minute: morningMinute, from: surgeryDate) } ?? nextMorning(after: now)
             var repeats = false
             if let askBy = finding.askByDay, fireDate <= now {

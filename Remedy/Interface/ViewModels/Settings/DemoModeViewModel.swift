@@ -65,6 +65,10 @@ struct DemoModeViewModel {
     let dateRowTitle = "Date"
     let leaveButton = "Leave"
     let doneButton = "Done"
+    let samplePapersTitle = "Sample Papers"
+    let samplePapersDetail = "The 4 papers behind HSS knee replacement. Open, share or add them."
+    let samplePapersIntro = "Made-up papers in the same format as real hospital printouts. Open one to see it, then load HSS knee replacement to see what Remedy made from it. To show adding papers, share them to Files and add them from Remedy."
+    let shareTitle = "Share"
     let connectionTitle = "Check Connections"
     let connectionDetail = "MyChart and Health with a sample patient"
 

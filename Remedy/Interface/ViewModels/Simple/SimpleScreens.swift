@@ -152,9 +152,14 @@ struct SimpleMedicinesScreen {
             guard let medicine = line.medicine else { continue }
             let mine = slots.filter { $0.medicine.persistentModelID == medicine.persistentModelID }
             let name = TodayViewModel.shortName(medicine.name)
-            if mine.contains(where: { $0.state == .due || $0.state == .missed }) {
+            if mine.contains(where: { $0.state == .due }) {
                 now_.append(SimpleMedicineCard(id: line.id, medicine: medicine, title: name,
                                                status: "Take \(Self.count(medicine.amount)) now", tone: .info, isNow: true))
+            } else if let missed = mine.last(where: { $0.state == .missed }) {
+                // a missed dose is never made up, same as today
+                now_.append(SimpleMedicineCard(id: line.id, medicine: medicine, title: name,
+                                               status: "Missed \(Self.shortTime(missed.scheduledFor)). Don\u{2019}t take an extra one.",
+                                               tone: .caution, isNow: true))
             } else if let next = mine.first(where: { $0.state == .upcoming }) {
                 rest.append(SimpleMedicineCard(id: line.id, medicine: medicine, title: name,
                                                status: "Next at \(Self.shortTime(next.scheduledFor))"))
@@ -189,8 +194,8 @@ struct SimpleMedicinesScreen {
 
     // "10 PM", "10:30 PM"
     static func shortTime(_ date: Date) -> String {
-        let minute = DayMath.calendar.component(.minute, from: date)
-        return minute == 0 ? date.formatted(.dateTime.hour()) : DayMath.timeText(of: date)
+        // always 12 hour like the rest of the app, never the phone's 19
+        DayMath.shortTimeText(DayMath.minuteOfDay(date))
     }
 
     static func lowerFirst(_ text: String) -> String {

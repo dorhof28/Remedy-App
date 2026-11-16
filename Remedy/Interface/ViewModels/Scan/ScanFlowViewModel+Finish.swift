@@ -105,6 +105,8 @@ extension ScanFlowViewModel {
             draft.tasks.append(.confirmedTodo(title))
         }
         let plan = PlanImporter.save(draft, in: context)
+        // DEMO ONLY papers added with demo mode on come with the days already lived, so the log looks used
+        if LaunchOptions.isDemoMode { DemoHistory.fill(plan, now: AppClock.now(), in: context) }
         // the check-in time picked in setup goes on the new plan
         if !isAddingPapers, let minute = defaults.object(forKey: OnboardingViewModel.checkInKey) as? Int {
             plan.checkInMinute = minute
